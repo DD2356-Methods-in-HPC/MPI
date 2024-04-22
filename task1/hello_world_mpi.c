@@ -5,7 +5,7 @@ int main(int argc, char** argv) {
     int processes, rank;
 
     // initialize MPI environment
-    MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
 
     // get the number of processes
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
