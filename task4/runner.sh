@@ -4,8 +4,8 @@
 #SBATCH -t 1:00:00
 #SBATCH -A edu24.DD2356
 #SBATCH -p main
-#SBATCH --ntasks-per-node=256
-#SBATCH --cpus-per-task=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=256
 #SBATCH --nodes=1
 #SBATCH -e error_file.e
 
