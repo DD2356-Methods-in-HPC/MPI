@@ -5,7 +5,6 @@
 #include <stdbool.h>
 
 #define TILE_SIZE (matrix_size / p)         // tile size
-#define INPUT_FILE_PATH "test_hard.txt"     // input text path
 
 // TEMPORARY
 void print_matrix(double *matrix, int matrix_size) {
@@ -127,6 +126,7 @@ int main(int argc, char** argv) {
     int p;                         // grid size (square root of num of processes)
     int grid_rank, grid_coords[2]; // cartesian grid
     MPI_Comm grid_comm;            // communicator with cartesian topology
+    char* input_file = NULL;       // path to file
 
     // initialize MPI environment
     MPI_Init(&argc, &argv);
@@ -134,6 +134,15 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     // get the number of processes
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
+
+    // check if input file name is provided as an argument
+    if (argc > 1) {
+        input_file = argv[1]; // the file name is the first argument after the program name
+    } else {
+        fprintf(stderr, "Usage: %s <input_file>\n", argv[0]);
+        MPI_Finalize();
+        exit(EXIT_FAILURE);
+    }
 
     // set grid size
     p = (int)sqrt(processes);
@@ -152,7 +161,7 @@ int main(int argc, char** argv) {
     int matrix_size;
 
     // read input matrices,  pass as reference
-    read_input_matrices_from_file(INPUT_FILE_PATH, &A, &B, &matrix_size);
+    read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
 
     // check matrix size
     if (matrix_size % p != 0) {
