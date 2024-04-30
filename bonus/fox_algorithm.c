@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
     if (p * p != processes) {
         // print on one process only
         if (rank == 0) {
-            printf("[ERROR] The number of processes must be a integer square.")
+            printf("[ERROR] The number of processes must be a integer square.");
         }
         // quit
         MPI_Finalize();
@@ -103,8 +103,8 @@ int main(int argc, char** argv) {
 
     // create cartesian grid, set variables
     int ndims = 2;                  // number of dimensions in grid, always 2D
-    int dims[ndims] = {p, p};       // integer array of size ndims, specifying number of processes in each dimension
-    int periods[ndims] = {1, 1};    // "boolean" array, use periodic boundaries (wrap around) for both dimensions
+    int dims[2] = {p, p};           // integer array of size ndims, specifying number of processes in each dimension
+    int periods[2] = {1, 1};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
     int reorder = 1;                // "boolean", let MPI reorder ranks
     // initilize grid
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
         MPI_Cart_shift(grid_comm, 1, -step, &grid_rank, &source_A);
 
         // send and recieve blocks of A
-        MPI_Sendrecv_replace(A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, source_A, 0, source_A, 0, grid_comm; MPI_STATUS_IGNORE);
+        MPI_Sendrecv_replace(A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, source_A, 0, source_A, 0, grid_comm, MPI_STATUS_IGNORE);
         // multiply blocks and accumulate result into C
         multiply_accumalate(A, B, C, TILE_SIZE);
 
