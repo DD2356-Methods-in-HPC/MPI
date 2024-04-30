@@ -1,6 +1,23 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+
+// function for allocationg and initializing a matrix, double precision
+double*  allocate_matrix(int rows, int cols, int fill_matrix) {
+    // allocate a block of memory for our matrix, returns a pointer.
+    double* matrix = (double*)malloc(rows * cols * sizeof(double));
+
+    // if fill matrix is true, fill with random values
+    if (fill_matrix) {
+        for (int i = 0; i < rows * cols; i++) {
+            matrix[i] = (double)rand() / RAND_MAX;
+        }
+    }
+
+    return matrix;
+}
 
 int main(int argc, char** argv) {
     int processes, rank;
@@ -36,6 +53,16 @@ int main(int argc, char** argv) {
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
+
+    // allocate matrix A, B, C
+    double* A = allocate_matrix(1, 1, 1);
+    double* B = allocate_matrix(1, 1, 1);
+    double* C = allocate_matrix(1, 1, 0);
+
+    // clean up memory allocations
+    free(A);
+    free(B);
+    free(C);
 
     // finalize the MPI environment
     MPI_Comm_free(&grid_comm);
