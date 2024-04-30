@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #define TILE_SIZE (matrix_size / p)         // tile size
-#define INPUT_FILE_PATH "test_easy.txt"     // input text path
+#define INPUT_FILE_PATH "test_medium.txt"     // input text path
 
 // TEMPORARY
 void print_matrix(double *matrix, int matrix_size) {
