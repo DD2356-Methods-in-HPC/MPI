@@ -94,7 +94,7 @@ bool compare_matrices(double* calculated_matrix, double* expected_matrix, int ma
     for (int i = 0; i < matrix_size; i++) {
         for (int j = 0; j < matrix_size; j++) {
             // compare the values with a tolerance
-            if (fabs(calculated_matrix[i][j] - expected_matrix[i][j]) > tolerance) {
+            if (fabs(calculated_matrix[i * matrix_size + j] - expected_matrix[i * matrix_size + j]) > tolerance) {
                 return false; // the matrices are not the same
             }
         }
