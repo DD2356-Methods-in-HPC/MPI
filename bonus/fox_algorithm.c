@@ -82,7 +82,7 @@ void read_expected_matrix_from_file(const char* filename, double** matrix, int m
 
     for (int i = 0; i < (matrix_size); i++) {
         for (int j = 0; j < (matrix_size); j++) {
-            fscanf(file, "%lf", &matrix[i * matrix_size + j]);
+            fscanf(file, "%lf", &(*matrix)[i * matrix_size + j]);
         }
     }
     
@@ -90,7 +90,7 @@ void read_expected_matrix_from_file(const char* filename, double** matrix, int m
 }
 
 // function to compare two matrices
-bool compare_matrices(double** calculated_matrix, double** expected_matrix, int matrix_size, double tolerance) {
+bool compare_matrices(double* calculated_matrix, double* expected_matrix, int matrix_size, double tolerance) {
     for (int i = 0; i < matrix_size; i++) {
         for (int j = 0; j < matrix_size; j++) {
             // compare the values with a tolerance
