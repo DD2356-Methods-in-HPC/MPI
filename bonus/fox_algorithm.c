@@ -5,6 +5,16 @@
 
 #define TILE_SIZE (matrix_size / p)
 
+// TEMPORARY
+void print_matrix(double *matrix, int matrix_size) {
+    for (int i = 0; i < matrix_size; i++) {
+        for (int j = 0; j < matrix_size; j++) {
+            printf("%6.2f ", matrix[i * cols + j]);
+        }
+        printf("\n");
+    }
+}
+
 // function for allocationg a square matrix, double precision
 double* allocate_matrix(int dim) {
     // allocate a block of memory for our matrix, returns a pointer.
@@ -23,24 +33,14 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
     }
 }
 
-// TEMPORARY
-void print_matrix(double *matrix, int rows, int cols) {
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            printf("%6.2f ", matrix[i * cols + j]);
-        }
-        printf("\n");
-    }
-}
-
 //function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm) {
     // gather all blocks of C from each process
     MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
 }
 
-// function for reading matrices from input file
-void read_matrices_from_file(const char* filename, double** A, double** B, int* matrix_size) {
+// function for reading matrices A and B from input file
+void read_input_matrices_from_file(const char* filename, double** A, double** B, int* matrix_size) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error opening file.\n");
@@ -65,6 +65,59 @@ void read_matrices_from_file(const char* filename, double** A, double** B, int* 
 
     // close the input file
     fclose(file);
+}
+
+// read a single matrix from a file, used in the test comparison
+void read_expected_matrix_from_file(const char* filename, double** matrix, int* matrix_size) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    // allocate for matrix
+    *matrix = allocate_matrix(*matrix_size);
+
+    for (int i = 0; i < (*matrix_size); i++) {
+        for (int j = 0; j < (*matrix_size); j++) {
+            fscanf(file, "%lf", &matrix[i][j]);
+        }
+    }
+    
+    fclose(file);
+}
+
+// function to compare two matrices
+bool compare_matrices(double** calculated_matrix, double** expected_matrix, int matrix_size, double tolerance) {
+    for (int i = 0; i < matrix_size; i++) {
+        for (int j = 0; j < matrix_size; j++) {
+            // compare the values with a tolerance
+            if (abs(calculated_matrix[i][j] - expected_matrix[i][j]) > tolerance) {
+                return false; // the matrices are not the same
+            }
+        }
+    }
+    return true; // the matrices are the same
+}
+
+void test_matrix_corectness(double** calculated_matrix, int* matrix_size) {
+    double* expected_matrix;
+
+    // read expected matrix, pass as reference
+    read_expected_matrix_from_file("compare.txt", &expected_matrix, matrix_size);
+    // set tolerance level
+    double tolerance = 1e-6;
+    bool matrices_match = compare_matrices(calculated_matrix, expected_matrix, matrix_size, tolerance);
+    
+    // check if test passes
+    if (matrices_match) {
+        printf("[TEST PASS] The calculated matrix matches the expected matrix.\n");
+    } else {
+        printf("[TEST FAIL] The calculated matrix does not match the expected matrix.\n");
+    }
+
+    // free up memory use
+    free(expected_matrix);
 }
 
 int main(int argc, char** argv) {
@@ -96,8 +149,8 @@ int main(int argc, char** argv) {
     double *A, *B;
     int matrix_size;
 
-    // read matrix values,  pass as reference
-    read_matrices_from_file("test.txt", &A, &B, &matrix_size);
+    // read input matrices,  pass as reference
+    read_input_matrices_from_file("test.txt", &A, &B, &matrix_size);
 
     // check matrix size
     if (matrix_size % p != 0) {
@@ -155,7 +208,8 @@ int main(int argc, char** argv) {
     
     if (rank == 0) {
         // TODO: compare resulting matrix with answer?
-        print_matrix(C_full, matrix_size, matrix_size);
+        // print_matrix(C_full, matrix_size, matrix_size);
+        test_matrix_corectness(C_full, matrix_size);
     }
 
     // clean up memory allocations
