@@ -44,7 +44,7 @@ void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm
 void read_input_matrices_from_file(const char* filename, double** A, double** B, int* matrix_size) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        printf("Error opening file.\n");
+        printf("[ERROR] No path to matrix file.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -72,7 +72,7 @@ void read_input_matrices_from_file(const char* filename, double** A, double** B,
 void read_expected_matrix_from_file(const char* filename, double** matrix, int matrix_size) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        printf("Error opening file.\n");
+        printf("[ERROR] No path to matrix file.\n");
         exit(EXIT_FAILURE);
     }
     
@@ -146,10 +146,11 @@ int main(int argc, char** argv) {
 
     // set grid size
     p = (int)sqrt(processes);
-    if (p * p != processes) {
+    // special case if processes = 2, because 1 * 1 = 1
+    if (p * p != processes && p != 1) {
         // print on master process only
         if (rank == 0) {
-            printf("[ERROR] The number of processes must be a integer square.");
+            printf("[ERROR] The number of processes must be a integer square, is %i.", p);
         }
         // quit
         MPI_Finalize();
