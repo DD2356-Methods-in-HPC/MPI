@@ -4,8 +4,8 @@
 #include <math.h>
 #include <stdbool.h>
 
-#define TILE_SIZE (matrix_size / p)
-
+#define TILE_SIZE (matrix_size / p)         // tile size
+#define INPUT_FILE_PATH "text_easy.txt"     // input text path
 
 // TEMPORARY
 void print_matrix(double *matrix, int matrix_size) {
@@ -152,7 +152,7 @@ int main(int argc, char** argv) {
     int matrix_size;
 
     // read input matrices,  pass as reference
-    read_input_matrices_from_file("test.txt", &A, &B, &matrix_size);
+    read_input_matrices_from_file(INPUT_FILE_PATH, &A, &B, &matrix_size);
 
     // check matrix size
     if (matrix_size % p != 0) {

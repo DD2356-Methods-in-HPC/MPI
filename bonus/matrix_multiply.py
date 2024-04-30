@@ -1,7 +1,7 @@
 import numpy as np
 
 # File path
-file_path = 'test.txt'
+file_path = 'test_easy.txt'
 
 # Read input dimensions and matrices from the file
 with open(file_path, 'r') as file:
