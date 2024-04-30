@@ -2,14 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 
 #define TILE_SIZE (matrix_size / p)
+
 
 // TEMPORARY
 void print_matrix(double *matrix, int matrix_size) {
     for (int i = 0; i < matrix_size; i++) {
         for (int j = 0; j < matrix_size; j++) {
-            printf("%6.2f ", matrix[i * cols + j]);
+            printf("%6.2f ", matrix[i * matrix_size + j]);
         }
         printf("\n");
     }
@@ -68,7 +70,7 @@ void read_input_matrices_from_file(const char* filename, double** A, double** B,
 }
 
 // read a single matrix from a file, used in the test comparison
-void read_expected_matrix_from_file(const char* filename, double** matrix, int* matrix_size) {
+void read_expected_matrix_from_file(const char* filename, double** matrix, int matrix_size) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error opening file.\n");
@@ -76,11 +78,11 @@ void read_expected_matrix_from_file(const char* filename, double** matrix, int* 
     }
     
     // allocate for matrix
-    *matrix = allocate_matrix(*matrix_size);
+    *matrix = allocate_matrix(matrix_size);
 
-    for (int i = 0; i < (*matrix_size); i++) {
-        for (int j = 0; j < (*matrix_size); j++) {
-            fscanf(file, "%lf", &matrix[i][j]);
+    for (int i = 0; i < (matrix_size); i++) {
+        for (int j = 0; j < (matrix_size); j++) {
+            fscanf(file, "%lf", &matrix[i * matrix_size + j]);
         }
     }
     
@@ -92,7 +94,7 @@ bool compare_matrices(double** calculated_matrix, double** expected_matrix, int 
     for (int i = 0; i < matrix_size; i++) {
         for (int j = 0; j < matrix_size; j++) {
             // compare the values with a tolerance
-            if (abs(calculated_matrix[i][j] - expected_matrix[i][j]) > tolerance) {
+            if (fabs(calculated_matrix[i][j] - expected_matrix[i][j]) > tolerance) {
                 return false; // the matrices are not the same
             }
         }
@@ -100,7 +102,7 @@ bool compare_matrices(double** calculated_matrix, double** expected_matrix, int 
     return true; // the matrices are the same
 }
 
-void test_matrix_corectness(double** calculated_matrix, int* matrix_size) {
+void test_matrix_corectness(double* calculated_matrix, int matrix_size) {
     double* expected_matrix;
 
     // read expected matrix, pass as reference
