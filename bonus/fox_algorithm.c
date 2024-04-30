@@ -43,9 +43,9 @@ void print_matrix(double *matrix, int rows, int cols) {
 }
 
 //function to gather the result matrix from all processes and assemble the full matrix on the master process
-void gather_results(double *C, double *C_full, int TILE_SIZE, MPI_Comm grid_comm) {
+void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm) {
     // gather all blocks of C from each process
-    MPI_Gather(C, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, C_full, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, 0, grid_comm);
+    MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
 }
 
 // function for reading matrices from input file
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
     int processes, rank;
     int p;                         // grid size (square root of num of processes)
     int grid_rank, grid_coords[2]; // cartesian grid
-    MIP_Comm grid_comm;            // communicator with cartesian topology
+    MPI_Comm grid_comm;            // communicator with cartesian topology
 
     // initialize MPI environment
     MPI_Init(&argc, &argv);
