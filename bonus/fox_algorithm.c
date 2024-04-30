@@ -9,15 +9,6 @@
 double* allocate_matrix(int dim) {
     // allocate a block of memory for our matrix, returns a pointer.
     double* matrix = (double*)malloc(dim * dim * sizeof(double));
-
-    /*
-    // if fill matrix is true, fill with random values
-    if (fill_matrix) {
-        for (int i = 0; i < rows * cols; i++) {
-            matrix[i] = (double)rand() / RAND_MAX;
-        }
-    }
-    */
     return matrix;
 }
 
@@ -59,8 +50,8 @@ void read_matrices_from_file(const char* filename, double** A, double** B, int* 
     // read the matrix size from the first line of the file
     fscanf(file, "%d", matrix_size);
     // allocate matrix A, B
-    *A = allocate_matrix(*matrix_size); //(double*)malloc((*matrix_size) * (*matrix_size) * sizeof(double));
-    *B = allocate_matrix(*matrix_size); //(double*)malloc((*matrix_size) * (*matrix_size) * sizeof(double));
+    *A = allocate_matrix(*matrix_size);
+    *B = allocate_matrix(*matrix_size);
 
     // read matrix A from the second line
     for (int i = 0; i < (*matrix_size) * (*matrix_size); i++) {
@@ -92,9 +83,27 @@ int main(int argc, char** argv) {
     // set grid size
     p = (int)sqrt(processes);
     if (p * p != processes) {
-        // print on one process only
+        // print on master process only
         if (rank == 0) {
             printf("[ERROR] The number of processes must be a integer square.");
+        }
+        // quit
+        MPI_Finalize();
+        return EXIT_FAILURE;
+    }
+
+    // initilize the blocks
+    double *A, *B;
+    int matrix_size;
+
+    // read matrix values,  pass as reference
+    read_matrices_from_file("test.txt", &A, &B, &matrix_size);
+
+    // check matrix size
+    if (matrix_size % p != 0) {
+        // print on master process only
+        if (rank == 0) {
+            printf("[ERROR] The matrix size must be divisible by the root of the number of processes.");
         }
         // quit
         MPI_Finalize();
@@ -110,13 +119,6 @@ int main(int argc, char** argv) {
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
-
-    // initilize the blocks
-    double *A, *B;
-    int matrix_size;
-
-    // read matrix values,  pass as reference
-    read_matrices_from_file("test.txt", &A, &B, &matrix_size);
 
     // allocate C matrix
     double* C = allocate_matrix(TILE_SIZE);
