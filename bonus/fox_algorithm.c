@@ -210,7 +210,8 @@ int main(int argc, char** argv) {
     
     if (rank == 0) {
         // TODO: compare resulting matrix with answer?
-        // print_matrix(C_full, matrix_size, matrix_size);
+        print_matrix(C_full, matrix_size, matrix_size);
+        // compare
         test_matrix_corectness(C_full, matrix_size);
     }
 
