@@ -146,6 +146,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
     // check if input file name is provided as an argument
+    /*
     if (argc > 1) {
         input_file = argv[1]; // the file name is the first argument after the program name
     } else {
@@ -153,6 +154,8 @@ int main(int argc, char** argv) {
         MPI_Finalize();
         exit(EXIT_FAILURE);
     }
+    */
+    input_file = "test_easy.txt"
 
     // set grid size
     p = (int)sqrt(processes);
