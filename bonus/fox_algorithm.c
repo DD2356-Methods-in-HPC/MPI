@@ -36,7 +36,7 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 }
 
 // function for distributing blocks of matrices to the different processes
-void distribute_blocks(double** A, double** B, int matrix_size, int processes, int block_size, MPI_Comm grid_comm) {
+void distribute_blocks(double** A, double** B, int matrix_size, int processes, int rank, int block_size, MPI_Comm grid_comm) {
     // create a new datatype for the blocks
     MPI_Datatype block_type;
     MPI_Type_vector(block_size, block_size, matrix_size, MPI_DOUBLE, &block_type);
@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
     }
 
     // distribute the blocks
-    distribute_blocks(&A, &B, matrix_size, processes, TILE_SIZE, grid_comm);
+    distribute_blocks(&A, &B, matrix_size, processes, rank, TILE_SIZE, grid_comm);
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
