@@ -35,6 +35,39 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
     }
 }
 
+// function for distributing blocks of matrices to the different processes
+void distribute_blocks(double** A, double** B, int matrix_size, int processes, int block_size, MPI_Comm grid_comm) {
+    // create a new datatype for the blocks
+    MPI_Datatype block_type;
+    MPI_Type_vector(block_size, block_size, matrix_size, MPI_DOUBLE, &block_type);
+    MPI_Type_commit(&block_type);
+
+    // distribute the blocks of matrix A
+    for (int i = 0; i < processes; i++) {
+        if (rank == 0) {
+            // send a block of matrix A to process i
+            MPI_Send(&(*A)[i * block_size * block_size], 1, block_type, i, 0, grid_comm);
+        } else if (rank == i) {
+            // receive a block of matrix A from the master process
+            MPI_Recv(*A, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
+        }
+    }
+
+    // distribute the blocks of matrix B
+    for (int i = 0; i < processes; i++) {
+        if (rank == 0) {
+            // send a block of matrix A to process i
+            MPI_Send(&(*B)[i * block_size * block_size], 1, block_type, i, 0, grid_comm);
+        } else if (rank == i) {
+            // receive a block of matrix A from the master process
+            MPI_Recv(*B, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
+        }
+    }
+
+    // free the datatype when it is no longer needed
+    MPI_Type_free(&block_type);
+}
+
 //function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm) {
     // gather all blocks of C from each process
@@ -156,11 +189,10 @@ int main(int argc, char** argv) {
         MPI_Finalize();
         exit(EXIT_FAILURE);
     }
-    //input_file = "test_easy.txt";
 
     // set grid size
     p = (int)sqrt(processes);
-    // special case if processes = 2, because 1 * 1 = 1
+    // special case if processes = 2, ALWAYS CRASH FOR SOME REASON
     if (p * p != processes) {
         // print on master process only
         if (rank == 0) {
@@ -175,42 +207,44 @@ int main(int argc, char** argv) {
     double *A, *B;
     int matrix_size;
 
-    // read input matrices,  pass as reference
-    read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
+    // read input matrices,  pass as reference, only on master process
+    if (rank == 0) {
+        read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
 
-    // check matrix size
-    if (matrix_size % p != 0) {
-        // print on master process only
-        if (rank == 0) {
+        // check matrix size
+        if (matrix_size % p != 0) {
             printf("[ERROR] The matrix size must be divisible by the root of the number of processes.");
+
+            // quit
+            MPI_Finalize();
+            return EXIT_FAILURE;
         }
-        // quit
-        MPI_Finalize();
-        return EXIT_FAILURE;
     }
+
+    // broadcast matrix_size to all processes, it is needed in fox algorithm
+    MPI_Bcast(&matrix_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // create cartesian grid, set variables
     int ndims = 2;                  // number of dimensions in grid, always 2D
     int dims[2] = {p, p};           // integer array of size ndims, specifying number of processes in each dimension
     int periods[2] = {1, 1};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
     int reorder = 1;                // "boolean", let MPI reorder ranks
-    // initilize grid
+    // initilize grid, all processes need the grid to know the coordinates of the blocks
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
     // allocate C matrix
     double* C = allocate_matrix(TILE_SIZE);
-    // allocate buffers for shifting blocks
-    double* A_shift = allocate_matrix(TILE_SIZE);
-    double* B_shift = allocate_matrix(TILE_SIZE);
-
     // allocate full matrices (on rank 0)
     double* C_full = NULL;
     if (rank == 0) {
         // use whole matrix size since it is the full matrix
         C_full = allocate_matrix(matrix_size);
     }
+
+    // distribute the blocks
+    distribute_blocks(&A, &B, matrix_size, processes, TILE_SIZE, grid_comm);
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
@@ -243,8 +277,8 @@ int main(int argc, char** argv) {
     free(A);
     free(B);
     free(C);
-    free(A_shift);
-    free(B_shift);
+    //free(A_shift);
+    //free(B_shift);
     // free upp full matrix if master process
     if (rank == 0) {
         free(C_full);
