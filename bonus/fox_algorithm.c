@@ -79,6 +79,15 @@ void read_expected_matrix_from_file(const char* filename, double** matrix, int m
     // allocate for matrix
     *matrix = allocate_matrix(matrix_size);
 
+    char line[1024]; // buffer to read each line
+
+    // loop through the file to find the line with 'E'
+    while (fgets(line, sizeof(line), file) != NULL) {
+        if (strchr(line, 'E') != NULL) {
+            break; // stop when we find a line containing 'E'
+        }
+    }
+
     for (int i = 0; i < (matrix_size); i++) {
         for (int j = 0; j < (matrix_size); j++) {
             fscanf(file, "%lf", &(*matrix)[i * matrix_size + j]);
@@ -101,11 +110,11 @@ bool compare_matrices(double* calculated_matrix, double* expected_matrix, int ma
     return true; // the matrices are the same
 }
 
-void test_matrix_corectness(double* calculated_matrix, int matrix_size) {
+void test_matrix_corectness(double* calculated_matrix, int matrix_size, char* file_path) {
     double* expected_matrix;
 
     // read expected matrix, pass as reference
-    read_expected_matrix_from_file("compare.txt", &expected_matrix, matrix_size);
+    read_expected_matrix_from_file(file_path, &expected_matrix, matrix_size);
     // set tolerance level
     double tolerance = 1e-6;
     bool matrices_match = compare_matrices(calculated_matrix, expected_matrix, matrix_size, tolerance);
@@ -222,7 +231,7 @@ int main(int argc, char** argv) {
         // TODO: compare resulting matrix with answer?
         print_matrix(C_full, matrix_size);
         // compare
-        test_matrix_corectness(C_full, matrix_size);
+        test_matrix_corectness(C_full, matrix_size, file_path);
     }
 
     // clean up memory allocations
