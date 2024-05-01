@@ -45,21 +45,23 @@ void distribute_blocks(double** A, double** B, int matrix_size, int processes, i
     // distribute the blocks of matrix A
     for (int i = 0; i < processes; i++) {
         if (rank == 0) {
-            // send a block of matrix A to each process
+            // send a block of matrix A to process i
             MPI_Send(&(*A)[i * block_size * block_size], 1, block_type, i, 0, grid_comm);
+        } else if (rank == i) {
+            // receive a block of matrix A from the master process
+            MPI_Recv(*A, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
         }
-        // receive a block of matrix A from the master process
-        MPI_Recv(*A, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
     // distribute the blocks of matrix B
     for (int i = 0; i < processes; i++) {
         if (rank == 0) {
-            // send a block of matrix B to each process
+            // send a block of matrix A to process i
             MPI_Send(&(*B)[i * block_size * block_size], 1, block_type, i, 0, grid_comm);
+        } else if (rank == i) {
+            // receive a block of matrix A from the master process
+            MPI_Recv(*B, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
         }
-        // receive a block of matrix B from the master process
-        MPI_Recv(*B, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
     // free the datatype when it is no longer needed
