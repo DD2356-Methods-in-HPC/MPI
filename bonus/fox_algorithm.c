@@ -208,17 +208,19 @@ int main(int argc, char** argv) {
     int matrix_size = 0;        // initilize to value beacuse otherwise segmentation fault is triggered
 
     // read input matrices,  pass as reference, only on master process
+    read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
+
+    // check matrix size
+    if (matrix_size % p != 0) {
+        printf("[ERROR] The matrix size must be divisible by the root of the number of processes.");
+
+        // quit
+        MPI_Finalize();
+        return EXIT_FAILURE;
+    }
+
     if (rank == 0) {
-        read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
 
-        // check matrix size
-        if (matrix_size % p != 0) {
-            printf("[ERROR] The matrix size must be divisible by the root of the number of processes.");
-
-            // quit
-            MPI_Finalize();
-            return EXIT_FAILURE;
-        }
     }
 
     // broadcast matrix_size to all processes, it is needed in fox algorithm
