@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
+#include <string.h> // include string.h for strchr
 
-#define TILE_SIZE (matrix_size / p)         // tile size
+#define TILE_SIZE (matrix_size / p)  // tile size
 
-// TEMPORARY
+// function for printing a matrix
 void print_matrix(double *matrix, int matrix_size) {
     for (int i = 0; i < matrix_size; i++) {
         for (int j = 0; j < matrix_size; j++) {
@@ -68,7 +69,7 @@ void read_input_matrices_from_file(const char* filename, double** A, double** B,
     fclose(file);
 }
 
-// read a single matrix from a file, used in the test comparison
+// function to read a single matrix from a file, used in the test comparison
 void read_expected_matrix_from_file(const char* filename, double** matrix, int matrix_size) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
@@ -87,7 +88,7 @@ void read_expected_matrix_from_file(const char* filename, double** matrix, int m
             break; // stop when we find a line containing 'E'
         }
     }
-
+    // start reading the matrix
     for (int i = 0; i < (matrix_size); i++) {
         for (int j = 0; j < (matrix_size); j++) {
             fscanf(file, "%lf", &(*matrix)[i * matrix_size + j]);
@@ -231,7 +232,7 @@ int main(int argc, char** argv) {
         // TODO: compare resulting matrix with answer?
         print_matrix(C_full, matrix_size);
         // compare
-        test_matrix_corectness(C_full, matrix_size, file_path);
+        test_matrix_corectness(C_full, matrix_size, input_file);
     }
 
     // clean up memory allocations
