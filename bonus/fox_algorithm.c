@@ -84,9 +84,6 @@ void read_input_matrices_from_file(const char* filename, double** A, double** B,
 
     // read the matrix size from the first line of the file
     fscanf(file, "%d", matrix_size);
-    // allocate matrix A, B
-    *A = allocate_matrix(*matrix_size);
-    *B = allocate_matrix(*matrix_size);
 
     // read matrix A from the second line
     for (int i = 0; i < (*matrix_size) * (*matrix_size); i++) {
@@ -207,20 +204,22 @@ int main(int argc, char** argv) {
     double *A, *B;
     int matrix_size = 0;        // initilize to value beacuse otherwise segmentation fault is triggered
 
-    // read input matrices,  pass as reference, only on master process
-    read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
-
-    // check matrix size
-    if (matrix_size % p != 0) {
-        printf("[ERROR] The matrix size must be divisible by the root of the number of processes.");
-
-        // quit
-        MPI_Finalize();
-        return EXIT_FAILURE;
-    }
+    // allocate matrix A, B
+    A = allocate_matrix(*matrix_size);
+    B = allocate_matrix(*matrix_size);
 
     if (rank == 0) {
+        // read input matrices,  pass as reference, only on master process
+        read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
 
+        // check matrix size
+        if (matrix_size % p != 0) {
+            printf("[ERROR] The matrix size must be divisible by the root of the number of processes.");
+
+            // quit
+            MPI_Finalize();
+            return EXIT_FAILURE;
+        }
     }
 
     // broadcast matrix_size to all processes, it is needed in fox algorithm
