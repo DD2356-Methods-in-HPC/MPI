@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
 
     // initilize the blocks
     double *A, *B;
-    int matrix_size;
+    int matrix_size = 0;        // initilize to value beacuse otherwise segmentation fault is triggered
 
     // read input matrices,  pass as reference, only on master process
     if (rank == 0) {
@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
     }
 
     // distribute the blocks
-    //distribute_blocks(&A, &B, matrix_size, processes, rank, TILE_SIZE, grid_comm);
+    distribute_blocks(&A, &B, matrix_size, processes, rank, TILE_SIZE, grid_comm);
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
@@ -277,8 +277,6 @@ int main(int argc, char** argv) {
     free(A);
     free(B);
     free(C);
-    //free(A_shift);
-    //free(B_shift);
     // free upp full matrix if master process
     if (rank == 0) {
         free(C_full);
