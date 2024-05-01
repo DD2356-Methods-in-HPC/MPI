@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
     // set grid size
     p = (int)sqrt(processes);
     // special case if processes = 2, because 1 * 1 = 1
-    if (p * p != processes && p != 1) {
+    if (p * p != processes) {
         // print on master process only
         if (rank == 0) {
             printf("[ERROR] The number of processes must be a integer square, is %i.", p);
