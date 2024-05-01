@@ -85,6 +85,10 @@ void read_input_matrices_from_file(const char* filename, double** A, double** B,
     // read the matrix size from the first line of the file
     fscanf(file, "%d", matrix_size);
 
+    // allocate matrix A, B
+    *A = allocate_matrix(*matrix_size);
+    *B = allocate_matrix(*matrix_size);
+
     // read matrix A from the second line
     for (int i = 0; i < (*matrix_size) * (*matrix_size); i++) {
         fscanf(file, "%lf", &(*A)[i]);
@@ -204,10 +208,6 @@ int main(int argc, char** argv) {
     double *A, *B;
     int matrix_size = 0;        // initilize to value beacuse otherwise segmentation fault is triggered
 
-    // allocate matrix A, B
-    A = allocate_matrix(*matrix_size);
-    B = allocate_matrix(*matrix_size);
-
     if (rank == 0) {
         // read input matrices,  pass as reference, only on master process
         read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
@@ -224,6 +224,13 @@ int main(int argc, char** argv) {
 
     // broadcast matrix_size to all processes, it is needed in fox algorithm
     MPI_Bcast(&matrix_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // allocate A and B on all other processes, otherwise segmentation fault
+    if (rank != 0) {
+        // allocate matrix A, B
+        A = allocate_matrix(matrix_size);
+        B = allocate_matrix(matrix_size);
+    }
 
     // create cartesian grid, set variables
     int ndims = 2;                  // number of dimensions in grid, always 2D
