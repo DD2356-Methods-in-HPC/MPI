@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
     */
-    input_file = "test_easy.txt"
+    input_file = "test_easy.txt";
 
     // set grid size
     p = (int)sqrt(processes);
