@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
     }
 
     // broadcast matrix_size to all processes, it is needed in fox algorithm
-    MPI_Bcast(&matrix_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(&matrix_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // create cartesian grid, set variables
     int ndims = 2;                  // number of dimensions in grid, always 2D
