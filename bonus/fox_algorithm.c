@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
     // set grid size
     p = (int)sqrt(processes);
     // special case if processes = 2, ALWAYS CRASH FOR SOME REASON
-    if (p * p != processes) {
+    if ((p * p != processes) && (processes != 2)) {
         // print on master process only
         if (rank == 0) {
             printf("[ERROR] The number of processes must be a integer square, is %i.", p);
@@ -317,7 +317,7 @@ int main(int argc, char** argv) {
         printf("Fox algorithm running on process %d, step %d:\n", rank, step);
         // shift block A up by one process in its column
         int up, down;
-        MPI_Cart_shift(grid_comm, 1, -1, &down, &up);
+        MPI_Cart_shift(grid_comm, 1, -step, &down, &up);
         MPI_Sendrecv_replace(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, up, 0, down, 0, grid_comm, MPI_STATUS_IGNORE);
 
         // multiply
@@ -334,7 +334,7 @@ int main(int argc, char** argv) {
 
         // shift block B left by one process in its row
         int left, right;
-        MPI_Cart_shift(grid_comm, 0, -step, &right, &left);
+        MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
