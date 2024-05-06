@@ -236,6 +236,13 @@ int main(int argc, char** argv) {
             MPI_Finalize();
             return EXIT_FAILURE;
         }
+        else {
+            printf("Success! Read the two input matrixes as follow:\n");
+            print("Input A:\n");
+            print_matrix(A, TILE_SIZE);
+            print("Input B:\n");
+            print_matrix(B, TILE_SIZE);
+        }
     }
 
     // broadcast matrix_size to all processes, it is needed in fox algorithm
@@ -268,7 +275,9 @@ int main(int argc, char** argv) {
     distribute_blocks(A, B, local_A, local_B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
 
     printf("Printing matrix from rank %d:\n", rank);
+    print("Block A:\n");
     print_matrix(local_A, TILE_SIZE);
+    print("Block B:\n");
     print_matrix(local_B, TILE_SIZE);
 
     // run fox algorithm
