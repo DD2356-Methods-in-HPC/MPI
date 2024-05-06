@@ -37,10 +37,17 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 
 // function for distributing blocks of matrices to the different processes
 void distribute_blocks(double* A, double* B, double* local_A, double* local_B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
-    // create a vector datatype for the blocks
-    MPI_Datatype block_type;
-    MPI_Type_vector(block_size, block_size, matrix_size, MPI_DOUBLE, &block_type);
+    MPI_Datatype temp_type, block_type;
+
+    // create a datatype for a block of elements in one row of the matrix
+    MPI_Type_contiguous(block_size, MPI_DOUBLE, &temp_type);
+
+    // extend the datatype to represent a block of rows in the matrix
+    MPI_Type_vector(block_size, 1, matrix_size, temp_type, &block_type);
+
     MPI_Type_commit(&block_type);
+    MPI_Type_free(&temp_type);  // Don't need this anymore
+
 
     // calculate the number of blocks in each dimension of the grid
     int grid_dims[2];
@@ -69,7 +76,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
             //correct? (coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
             // not sure if this one works (coords[0] * block_size * matrix_size) + (coords[1] * block_size);
 
-            displacements[i] = 8; 
+            displacements[i] = (coords[0] * block_size * matrix_size) + (coords[1] * block_size); 
         }
 
         // debugging
