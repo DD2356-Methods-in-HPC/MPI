@@ -219,8 +219,12 @@ int main(int argc, char** argv) {
     // get the number of processes
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
+    MPI_Barrier(grid_comm);
+
     // print the hello message for each MPI process
     printf("Hello from rank %d from %d processes!\n", rank, processes);
+
+    MPI_Barrier(grid_comm);
 
     // check if input file name is provided as an argument
     if (argc > 1) {
