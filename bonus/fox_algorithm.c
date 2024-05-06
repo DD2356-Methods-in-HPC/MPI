@@ -264,11 +264,12 @@ int main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         else {
-            printf("Success! Read the two input matrixes as follow:\n");
+            printf("Read the two input matrixes as follow:\n");
             printf("Input A:\n");
             print_matrix(A, matrix_size);
             printf("Input B:\n");
             print_matrix(B, matrix_size);
+            printf("\n");
         }
     }
 
@@ -313,16 +314,21 @@ int main(int argc, char** argv) {
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
+        printf("Fox algorithm running on process %d, step %d:\n", rank, step);
         // shift block A up by one process in its column
         int up, down;
-        MPI_Cart_shift(grid_comm, 1, -step, &down, &up);
+        MPI_Cart_shift(grid_comm, 1, -1, &down, &up);
         MPI_Sendrecv_replace(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, up, 0, down, 0, grid_comm, MPI_STATUS_IGNORE);
 
         // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
+        printf("Multiplied the following matrices:\n");
+        print_matrix(local_A, TILE_SIZE);
+        print_matrix(local_B, TILE_SIZE);
+
         // debug
-        printf("Local Matrix C from rank %d, step  %d:\n", rank, step);
+        printf("Following matrix was produced (local C):\n", rank, step);
         print_matrix(local_C, TILE_SIZE);
         printf("\n");
 
