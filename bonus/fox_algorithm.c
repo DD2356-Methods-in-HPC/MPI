@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
     // print the hello message for each MPI process
-    // printf("\nHello from rank %d from %d processes!\n", rank, processes);
+    printf("\nHello from rank %d!\n", rank);
 
     // check if input file name is provided as an argument
     if (argc > 1) {
@@ -235,8 +235,7 @@ int main(int argc, char** argv) {
 
     // set grid size
     p = (int)sqrt(processes);
-    // special case if processes = 2, ALWAYS CRASH FOR SOME REASON
-    if ((p * p != processes) && (processes != 2)) {
+    if (p * p != processes) {
         // print on master process only
         if (rank == 0) {
             printf("[ERROR] The number of processes must be a integer square, is %i.", p);
@@ -326,7 +325,9 @@ int main(int argc, char** argv) {
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
         printf("Multiplied the following matrices:\n");
+        printf("A\n");
         print_matrix(local_A, TILE_SIZE);
+        printf("B\n");
         print_matrix(local_B, TILE_SIZE);
 
         // debug
