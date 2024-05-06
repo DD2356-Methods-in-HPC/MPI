@@ -63,9 +63,6 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     int* displacements = NULL;
 
     if (rank == 0) {
-        //printf("whole matrix size: %d\n", matrix_size);
-        //printf("is it evenly divisable with: %d?\n", block_size);
-
         int coords[2];
         sendcounts = malloc(processes * sizeof(int));
         displacements = malloc(processes * sizeof(int));
@@ -75,9 +72,6 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
             // calculate the displacement for each process
             MPI_Cart_coords(grid_comm, i, 2, coords);
-
-            //correct? (coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
-            // not sure if this one works (coords[0] * block_size * matrix_size) + (coords[1] * block_size);
 
             displacements[i] = coords[0] * matrix_size + coords[1]; 
         }
@@ -307,15 +301,13 @@ int main(int argc, char** argv) {
     // distribute the blocks
     distribute_blocks(A, B, local_A, local_B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
 
-    MPI_Barrier(grid_comm);
-
+    /*
     printf("After scattering, local matrices from rank %d:\n", rank);
     printf("Block A:\n");
     print_matrix(local_A, TILE_SIZE);
     printf("Block B:\n");
     print_matrix(local_B, TILE_SIZE);
-
-    MPI_Barrier(grid_comm);
+    */
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
@@ -326,6 +318,10 @@ int main(int argc, char** argv) {
 
         // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
+
+        // debug
+        printf("Local Matrix C from rank %d:\n", rank);
+        print_matrix(local_C, TILE_SIZE);
 
         // shift block B left by one process in its row
         int left, right;
