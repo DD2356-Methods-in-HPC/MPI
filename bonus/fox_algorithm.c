@@ -56,12 +56,15 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     int* displacements = NULL;
 
     if (rank == 0) {
+        printf("whole matrix size: %d\n", matrix_size);
+        printf("is it evenly divisable with: %d?\n", block_size);
+
         int coords[2];
         sendcounts = malloc(processes * sizeof(int));
         displacements = malloc(processes * sizeof(int));
 
         for (int i = 0; i < processes; i++) {
-            sendcounts[i] = block_size * block_size; // sending one block of size block_size x block_size to each process
+            sendcounts[i] = 1; // sending one block of size block_size x block_size to each process
 
             // calculate the displacement for each process
             MPI_Cart_coords(grid_comm, i, 2, coords);
