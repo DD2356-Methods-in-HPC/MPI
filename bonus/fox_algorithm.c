@@ -336,6 +336,9 @@ int main(int argc, char** argv) {
         int left, right;
         MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
+
+        // sync before gather
+        MPI_Barrier(grid_comm);
     }
 
     // gather results to form the full matrix C on master process (rank 0)
