@@ -36,7 +36,7 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 }
 
 // function for distributing blocks of matrices to the different processes
-void distribute_blocks(double** A, double** B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
+void distribute_blocks(double* A, double* B, double* local_A, double* local_B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
     // create a subarray datatype for the blocks
     MPI_Datatype block_type;
     int subarray_sizes[2] = { matrix_size, matrix_size };
@@ -69,10 +69,10 @@ void distribute_blocks(double** A, double** B, int matrix_size, int rank, int pr
     }
 
     // scatter blocks of matrix A to all processes
-    MPI_Scatterv(*A, sendcounts, displacements, block_type, *A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+    MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
 
     // scatter blocks of matrix B to all processes
-    MPI_Scatterv(*B, sendcounts, displacements, block_type, *B, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+    MPI_Scatterv(B, sendcounts, displacements, block_type, local_B, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
 
     // free the arrays and datatype when they are no longer needed
     if (rank == 0) {
@@ -221,6 +221,7 @@ int main(int argc, char** argv) {
 
     // initilize the blocks
     double *A, *B;
+    double *local_A, *local_B;
     int matrix_size = 0;        // initilize to value beacuse otherwise segmentation fault is triggered
 
     if (rank == 0) {
@@ -240,12 +241,9 @@ int main(int argc, char** argv) {
     // broadcast matrix_size to all processes, it is needed in fox algorithm
     MPI_Bcast(&matrix_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // allocate A and B on all other processes, otherwise segmentation fault
-    if (rank != 0) {
-        // allocate matrix A, B
-        A = allocate_matrix(matrix_size);
-        B = allocate_matrix(matrix_size);
-    }
+    // allocate local blocks of A and B on all processes
+    local_A = allocate_matrix(TILE_SIZE);
+    local_B = allocate_matrix(TILE_SIZE);
 
     // create cartesian grid, set variables
     int ndims = 2;                  // number of dimensions in grid, always 2D
@@ -258,7 +256,7 @@ int main(int argc, char** argv) {
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
     // allocate C matrix
-    double* C = allocate_matrix(TILE_SIZE);
+    double* local_C = allocate_matrix(TILE_SIZE);
     // allocate full matrices (on rank 0)
     double* C_full = NULL;
     if (rank == 0) {
@@ -267,7 +265,11 @@ int main(int argc, char** argv) {
     }
 
     // distribute the blocks
-    distribute_blocks(&A, &B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
+    distribute_blocks(A, B, local_A, local_B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
+
+    printf("Printing matrix from rank %d:\n", rank);
+    print_matrix(local_A, TILE_SIZE);
+    print_matrix(local_B, TILE_SIZE);
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
@@ -276,18 +278,18 @@ int main(int argc, char** argv) {
         MPI_Cart_shift(grid_comm, 1, -step, &grid_rank, &source_A);
 
         // send and recieve blocks of A
-        MPI_Sendrecv_replace(A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, source_A, 0, source_A, 0, grid_comm, MPI_STATUS_IGNORE);
+        MPI_Sendrecv_replace(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, source_A, 0, source_A, 0, grid_comm, MPI_STATUS_IGNORE);
         // multiply blocks and accumulate result into C
-        multiply_accumalate(A, B, C, TILE_SIZE);
+        multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
         // shift block B left within each row
         int left, right;
         MPI_Cart_shift(grid_comm, 0, -1, &grid_rank, &right);
-        MPI_Sendrecv_replace(B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, right, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
+        MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, right, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
     // gather results to form the full matrix C on master process (rank 0)
-    gather_results(C, C_full, TILE_SIZE, grid_comm);
+    gather_results(local_C, C_full, TILE_SIZE, grid_comm);
     
     if (rank == 0) {
         // TODO: compare resulting matrix with answer?
