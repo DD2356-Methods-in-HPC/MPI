@@ -40,15 +40,14 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     
     MPI_Datatype row_block_type, block_type;
 
-    // Create a datatype for a block of elements in one row of the matrix
+    // create a datatype for a block of elements in one row of the matrix
     MPI_Type_contiguous(block_size, MPI_DOUBLE, &row_block_type);
 
-    // Create a datatype for a block of row blocks in the matrix
-    MPI_Type_vector(block_size, 1, block_size, row_block_type, &block_type);
+    // create a datatype for a block of row blocks in the matrix
+    MPI_Type_vector(block_size, -1, block_size, row_block_type, &block_type);
 
     MPI_Type_commit(&block_type);
     MPI_Type_free(&row_block_type);  // Don't need this anymore
-
 
     // calculate the number of blocks in each dimension of the grid
     int grid_dims[2];
