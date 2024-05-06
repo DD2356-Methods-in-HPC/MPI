@@ -111,7 +111,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 // function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *local_C, double *C_full, int tile_size, MPI_Comm grid_comm) {
     // gather all blocks of C from each process
-    MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
+    MPI_Gather(local_C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
 }
 
 // function for reading matrices A and B from input file
