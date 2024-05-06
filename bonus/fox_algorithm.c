@@ -325,16 +325,12 @@ int main(int argc, char** argv) {
         // calculate root process for this step
         int root = (grid_coords[0] + step) % p;
 
-        // broadcast the block A in each row
-        if (grid_coords[1] == root) {
-            MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, 0, row_comm);
-        } else {
-            MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, 1, row_comm);
-        }
+        printf("Root: %d, Grid Coordinates: %d, %d", root, grid_coords[0], grid_coords[1]);
 
         // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
+        /*
         printf("Multiplied the following matrices:\n");
         printf("A\n");
         print_matrix(local_A, TILE_SIZE);
@@ -344,6 +340,8 @@ int main(int argc, char** argv) {
         // debug
         printf("Following matrix was produced (local C):\n");
         print_matrix(local_C, TILE_SIZE);
+        */
+
         printf("\n");
 
         // shift block B left by one process in its row
