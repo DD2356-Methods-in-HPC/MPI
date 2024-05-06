@@ -335,12 +335,6 @@ int main(int argc, char** argv) {
         // broadcast the block A in each row
         MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
 
-        /*
-        if (grid_coords[1] == root) {
-            printf("Broadcasting local_A because of root %d...", root);
-        }
-        */
-
         // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
@@ -360,7 +354,9 @@ int main(int argc, char** argv) {
 
         // shift block B left by one process in its row
         int left, right;
-        MPI_Cart_shift(grid_comm, 1, -1, &right, &left);
+        int left = (rank + step) % processes;
+        int right = (rank - step + processes) % processes;
+        //MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
