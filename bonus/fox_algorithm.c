@@ -65,21 +65,16 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
             // calculate the displacement for each process
             MPI_Cart_coords(grid_comm, i, 2, coords);
-            displacements[i] = (coords[0] * block_size * matrix_size) + (coords[1] * block_size);
+            displacements[i] = (coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
         }
 
         // debugging
-        /*
-        printf("Displacements array:\n");
+        printf("\nDisplacements array:\n");
         for (int i = 0; i < processes; i++) {
                 MPI_Cart_coords(grid_comm, i, 2, coords);
                 printf("Process %d - coords (%d, %d), displacement: %d\n",
                     i, coords[0], coords[1], displacements[i]);
         }
-        */
-
-        printf("Before scattering: A[0]: %.2f, A[1]: %.2f\n", A[0], A[1]);
-        printf("Before scattering: B[0]: %.2f, B[1]: %.2f\n", B[0], B[1]);
     }
 
     // before scatter, use barrier to synchronize processes
@@ -196,10 +191,10 @@ void test_matrix_corectness(double* calculated_matrix, int matrix_size, char* fi
     
     // check if test passes
     if (matrices_match) {
-        printf("[TEST PASS] The calculated matrix matches the expected matrix.\n");
+        printf("\n[TEST PASS] The calculated matrix matches the expected matrix.\n");
 
     } else {
-        printf("[TEST FAIL] The calculated matrix does not match the expected matrix.\nExpected matrix:\n");
+        printf("\n[TEST FAIL] The calculated matrix does not match the expected matrix.\nExpected matrix:\n");
         print_matrix(expected_matrix, matrix_size);
     }
 
