@@ -88,7 +88,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     MPI_Barrier(grid_comm);
 
     if (rank == 0) {
-        print_matrix(A);
+        print_matrix(A, matrix_size);
     }
 
     // scatter blocks of matrix A to all processes
