@@ -37,27 +37,27 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 
 // function for distributing blocks of matrices to the different processes
 void distribute_blocks(double* A, double* B, double* local_A, double* local_B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
-    
+    // because the matrices are represented as a 1D array in the code (but we want them to function as 2D)
+    // we have to be very careful with how we are defining our MPI datatype, especially with how the 
+    // variables are stored in the memory.
+    // To make sure our stride correctly reads the data and does not go out of bounds
+    // we create a row_type first that defines the stride for each row,
+    // then we can resize it for the blocks 
     MPI_Datatype row_type, block_type;
 
-    // Create a new data type for a row
+    // create a new data type for a row, it is the size of one dimension of a block
     MPI_Type_contiguous(block_size, MPI_DOUBLE, &row_type);
     MPI_Type_commit(&row_type);
 
-    // Create a new data type for a block
+    // create a new data type for a block, it is the size of one dimension of a block
+    // but we set the stride as the original matrix size divided by the block size
+    // we set row type as our original type
     MPI_Type_vector(block_size, 1, matrix_size/block_size, row_type, &block_type);
-    MPI_Type_create_resized(block_type, 0, sizeof(double)*block_size, &block_type);
+    // we then resize the block type with the size of a double to make sure that in memory space
+    // we read correctly (not too far ahead)
+    MPI_Type_create_resized(block_type, 0, sizeof(double) * block_size, &block_type);
     MPI_Type_commit(&block_type);
 
-    // calculate the number of blocks in each dimension of the grid
-    //int grid_dims[2];
-    //MPI_Cartdim_get(grid_comm, grid_dims);
-    //int blocks_per_row = grid_dims[0];
-    //int blocks_per_col = grid_dims[1];
-
-    printf("Blocks size: %d\nMatrix size: %d\n", block_size, matrix_size);
-
-    
     // create arrays to hold the counts and displacements for MPI_Scatterv
     int* sendcounts = NULL;
     int* displacements = NULL;
@@ -94,10 +94,6 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     // before scatter, use barrier to synchronize processes
     MPI_Barrier(grid_comm);
 
-    if (rank == 0) {
-        print_matrix(A, matrix_size);
-    }
-
     // scatter blocks of matrix A to all processes
     MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
     // scatter blocks of matrix B to all processes
@@ -105,8 +101,6 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
     // after scatter, use barrier to synchronize processes
     MPI_Barrier(grid_comm);
-
-    printf("After scattering, rank %d: local_A[0]: %.2f, local_B[0]: %.2f\n", rank, local_A[0], local_B[0]);
 
     // free the arrays and datatype when they are no longer needed
     if (rank == 0) {
@@ -236,7 +230,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
     // print the hello message for each MPI process
-    printf("\nHello from rank %d from %d processes!\n", rank, processes);
+    // printf("\nHello from rank %d from %d processes!\n", rank, processes);
 
     // check if input file name is provided as an argument
     if (argc > 1) {
@@ -319,7 +313,7 @@ int main(int argc, char** argv) {
 
     MPI_Barrier(grid_comm);
 
-    printf("Printing matrix from rank %d:\n", rank);
+    printf("After scattering, local matrices from rank %d:\n", rank);
     printf("Block A:\n");
     print_matrix(local_A, TILE_SIZE);
     printf("Block B:\n");
@@ -330,18 +324,18 @@ int main(int argc, char** argv) {
     // run fox algorithm
     for (int step = 0; step < p; step++) {
         // set rank of source process for block A
-        int source_A;
-        MPI_Cart_shift(grid_comm, 1, -step, &grid_rank, &source_A);
+        int source_A, dest_A;
+        MPI_Cart_shift(grid_comm, 1, -step, &dest_A, &source_A);
 
         // send and recieve blocks of A
-        MPI_Sendrecv_replace(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, source_A, 0, source_A, 0, grid_comm, MPI_STATUS_IGNORE);
+        MPI_Sendrecv_replace(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, dest_A, 0, source_A, 0, grid_comm, MPI_STATUS_IGNORE);
         // multiply blocks and accumulate result into C
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
         // shift block B left within each row
         int left, right;
-        MPI_Cart_shift(grid_comm, 0, -1, &grid_rank, &right);
-        MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, right, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
+        MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
+        MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
     // gather results to form the full matrix C on master process (rank 0)
