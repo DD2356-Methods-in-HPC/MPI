@@ -323,7 +323,7 @@ int main(int argc, char** argv) {
         printf("Fox algorithm running on process %d, step %d:\n", rank, step);
 
         // calculate root process for this step
-        int root = (coords[0] + step) % p;
+        int root = (grid_coords[0] + step) % p;
 
         // broadcast the block A in each row
         if (grid_coords[1] == root) {
