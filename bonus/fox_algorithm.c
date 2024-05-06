@@ -110,6 +110,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
 // function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *local_C, double *C_full, int tile_size, int matrix_size, int rank, int p, MPI_Comm grid_comm) {
+    double* temp_C = NULL;
 
     if (rank == 0) {
         double* temp_C = allocate_matrix(matrix_size);
