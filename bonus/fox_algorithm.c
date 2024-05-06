@@ -54,7 +54,9 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     // create arrays to hold the counts and displacements for MPI_Scatterv
     int* sendcounts = NULL;
     int* displacements = NULL;
+
     if (rank == 0) {
+        int coords[2];
         sendcounts = malloc(processes * sizeof(int));
         displacements = malloc(processes * sizeof(int));
 
@@ -62,19 +64,16 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
             sendcounts[i] = 1; // sending one block of size block_size x block_size to each process
 
             // calculate the displacement for each process
-            int coords[2];
             MPI_Cart_coords(grid_comm, i, 2, coords);
             displacements[i] = (coords[0] * block_size * matrix_size) + (coords[1] * block_size);
         }
-    }
 
-    // debugging
-    if (rank == 0) {
-    printf("Displacements array:\n");
-    for (int i = 0; i < processes; i++) {
-            MPI_Cart_coords(grid_comm, i, 2, coords);
-            printf("Process %d - coords (%d, %d), displacement: %d\n",
-                i, coords[0], coords[1], displacements[i]);
+        // debugging
+        printf("Displacements array:\n");
+        for (int i = 0; i < processes; i++) {
+                MPI_Cart_coords(grid_comm, i, 2, coords);
+                printf("Process %d - coords (%d, %d), displacement: %d\n",
+                    i, coords[0], coords[1], displacements[i]);
         }
     }
 
