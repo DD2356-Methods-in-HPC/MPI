@@ -114,12 +114,8 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
 // function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm) {
-    // sync before gather
-    MPI_Barrier(grid_comm);
     // gather all blocks of C from each process
     MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
-    // sync after gather
-    MPI_Barrier(grid_comm);
 }
 
 // function for reading matrices A and B from input file
@@ -291,7 +287,7 @@ int main(int argc, char** argv) {
     int ndims = 2;                  // number of dimensions in grid, always 2D
     int dims[2] = {p, p};           // integer array of size ndims, specifying number of processes in each dimension
     int periods[2] = {1, 1};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
-    int reorder = 1;                // "boolean", let MPI reorder ranks
+    int reorder = 1;                // "boolean", let MPI reorder ranks for more efficient process layout
     // initilize grid, all processes need the grid to know the coordinates of the blocks
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
     MPI_Comm_rank(grid_comm, &grid_rank);
@@ -323,22 +319,18 @@ int main(int argc, char** argv) {
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
-        // set rank of source process for block A
-        int source_A, dest_A;
-        MPI_Cart_shift(grid_comm, 1, -step, &dest_A, &source_A);
+        // shift block A up by one process in its column
+        int up, down;
+        MPI_Cart_shift(grid_comm, 1, -1, &down, &up);
+        MPI_Sendrecv_replace(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, up, 0, down, 0, grid_comm, MPI_STATUS_IGNORE);
 
-        // send and recieve blocks of A
-        MPI_Sendrecv_replace(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, dest_A, 0, source_A, 0, grid_comm, MPI_STATUS_IGNORE);
-        // multiply blocks and accumulate result into C
+        // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
-        // shift block B left within each row
+        // shift block B left by one process in its row
         int left, right;
         MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
-
-        // sync before gather
-        MPI_Barrier(grid_comm);
     }
 
     // gather results to form the full matrix C on master process (rank 0)
