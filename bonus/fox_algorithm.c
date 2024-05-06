@@ -39,7 +39,7 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 void distribute_blocks(double* A, double* B, double* local_A, double* local_B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
     
     MPI_Datatype block_type;
-    MPI_Type_vector(block_size * block_size, 1, block_size, MPI_DOUBLE, &block_type);
+    MPI_Type_vector(block_size, 1, block_size, MPI_DOUBLE, &block_type);
     MPI_Type_create_resized(block_type, 0, sizeof(double), &block_type);
     MPI_Type_commit(&block_type);
 
