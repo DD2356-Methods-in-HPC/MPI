@@ -76,6 +76,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
             displacements[i] = coords[0] * matrix_size + coords[1]; 
         }
 
+        /*
         // debugging
         printf("\nDisplacements array:\n");
         for (int i = 0; i < processes; i++) {
@@ -83,6 +84,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
                 printf("Process %d - coords (%d, %d), displacement: %d\n",
                     i, coords[0], coords[1], displacements[i]);
         }
+        */
     }
 
     // before scatter, use barrier to synchronize processes
@@ -320,8 +322,9 @@ int main(int argc, char** argv) {
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
         // debug
-        printf("Local Matrix C from rank %d:\n", rank);
+        printf("Local Matrix C from rank %d, step  %d:\n", rank, step);
         print_matrix(local_C, TILE_SIZE);
+        printf("\n");
 
         // shift block B left by one process in its row
         int left, right;
