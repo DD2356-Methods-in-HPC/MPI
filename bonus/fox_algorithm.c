@@ -339,6 +339,7 @@ int main(int argc, char** argv) {
 
         // calculate root process for this step
         // alt: (rank % p + step) % p
+        // else rank => grid_coords[0]
         int root = (rank + step) % p;
 
         //printf("Root: %d, Grid Coordinates: %d, %d", root, grid_coords[0], grid_coords[1]);
@@ -364,7 +365,9 @@ int main(int argc, char** argv) {
 
         // shift block B left by one process in its row
         int left, right;
-        MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
+        left = (grid_coords[1] + 1) % p;
+        right = (grid_coords[1] - 1 + p) % p;
+        //MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
