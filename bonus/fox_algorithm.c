@@ -79,7 +79,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
             //correct? (coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
             // not sure if this one works (coords[0] * block_size * matrix_size) + (coords[1] * block_size);
 
-            displacements[i] = coords[0] + coords[1]; //(coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size); 
+            displacements[i] = coords[0] * matrix_size + coords[1]; 
         }
 
         // debugging
