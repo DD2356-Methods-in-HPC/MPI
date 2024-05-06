@@ -68,7 +68,11 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
             // calculate the displacement for each process
             MPI_Cart_coords(grid_comm, i, 2, coords);
-            displacements[i] = 3; //(coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
+
+            //correct? (coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
+            // not sure if this one works (coords[0] * block_size * matrix_size) + (coords[1] * block_size);
+
+            displacements[i] = 3; 
         }
 
         // debugging
@@ -82,6 +86,10 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
     // before scatter, use barrier to synchronize processes
     MPI_Barrier(grid_comm);
+
+    if (rank == 0) {
+        print_matrix(A);
+    }
 
     // scatter blocks of matrix A to all processes
     MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
