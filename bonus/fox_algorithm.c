@@ -36,39 +36,54 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 }
 
 // function for distributing blocks of matrices to the different processes
-void distribute_blocks(double** A, double** B, int matrix_size, int processes, int rank, int block_size, MPI_Comm grid_comm) {
-    // create a new datatype for the blocks
+void distribute_blocks(double** A, double** B, int matrix_size, int rank, int block_size, MPI_Comm grid_comm) {
+    // create a subarray datatype for the blocks
     MPI_Datatype block_type;
-    MPI_Type_vector(block_size, block_size, matrix_size, MPI_DOUBLE, &block_type);
+    int subarray_sizes[2] = { matrix_size, matrix_size };
+    int subarray_starts[2] = { 0, 0 };
+    int subarray_block_size[2] = { block_size, block_size };
+    MPI_Type_create_subarray(2, subarray_sizes, subarray_block_size, subarray_starts, MPI_ORDER_C, MPI_DOUBLE, &block_type);
     MPI_Type_commit(&block_type);
 
-    // distribute the blocks of matrix A
-    for (int i = 0; i < processes; i++) {
-        if (rank == 0) {
-            // send a block of matrix A to process i
-            MPI_Send(&(*A)[i * block_size * block_size], 1, block_type, i, 0, grid_comm);
-        } else if (rank == i) {
-            // receive a block of matrix A from the master process
-            MPI_Recv(*A, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
+    // calculate the number of blocks in each dimension of the grid
+    int grid_dims[2];
+    MPI_Cartdim_get(grid_comm, grid_dims);
+    int blocks_per_row = grid_dims[0];
+    int blocks_per_col = grid_dims[1];
+    
+    // create arrays to hold the counts and displacements for MPI_Scatterv
+    int* sendcounts = NULL;
+    int* displacements = NULL;
+    if (rank == 0) {
+        sendcounts = malloc(processes * sizeof(int));
+        displacements = malloc(processes * sizeof(int));
+
+        for (int i = 0; i < processes; i++) {
+            sendcounts[i] = 1; // sending one block of size block_size x block_size to each process
+
+            // calculate the displacement for each process
+            int coords[2];
+            MPI_Cart_coords(grid_comm, i, 2, coords);
+            displacements[i] = (coords[0] * block_size * matrix_size) + (coords[1] * block_size);
         }
     }
 
-    // distribute the blocks of matrix B
-    for (int i = 0; i < processes; i++) {
-        if (rank == 0) {
-            // send a block of matrix A to process i
-            MPI_Send(&(*B)[i * block_size * block_size], 1, block_type, i, 0, grid_comm);
-        } else if (rank == i) {
-            // receive a block of matrix A from the master process
-            MPI_Recv(*B, block_size * block_size, MPI_DOUBLE, 0, 0, grid_comm, MPI_STATUS_IGNORE);
-        }
+    // scatter blocks of matrix A to all processes
+    MPI_Scatterv(*A, sendcounts, displacements, block_type, *A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+
+    // scatter blocks of matrix B to all processes
+    MPI_Scatterv(*B, sendcounts, displacements, block_type, *B, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+
+    // free the arrays and datatype when they are no longer needed
+    if (rank == 0) {
+        free(sendcounts);
+        free(displacements);
     }
 
-    // free the datatype when it is no longer needed
     MPI_Type_free(&block_type);
 }
 
-//function to gather the result matrix from all processes and assemble the full matrix on the master process
+// function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm) {
     // gather all blocks of C from each process
     MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
