@@ -296,7 +296,13 @@ int main(int argc, char** argv) {
     int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
     MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
 
-    MPI_Barrier(grid_comm);
+    int row_rank, row_size;
+    MPI_Comm_rank(row_comm, &row_rank);
+    MPI_Comm_size(row_comm, &row_size);
+
+    printf("Process %d out of %d in row_comm\n", row_rank, row_size);
+
+    MPI_Barrier(row_comm);
 
     // allocate C matrix
     double* local_C = allocate_matrix(TILE_SIZE);
