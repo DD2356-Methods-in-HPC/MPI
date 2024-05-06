@@ -212,6 +212,7 @@ int main(int argc, char** argv) {
     int p;                         // grid size (square root of num of processes)
     int grid_rank, grid_coords[2]; // cartesian grid
     MPI_Comm grid_comm;            // communicator with cartesian topology
+    MPI_Comm row_comm;
     char* input_file = NULL;       // path to file
 
     // initialize MPI environment
@@ -292,7 +293,6 @@ int main(int argc, char** argv) {
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
     // create a sub-grid for all the processes in the same row of the process grid
-    MPI_Comm row_comm;
     int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
     MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
 
@@ -322,13 +322,10 @@ int main(int argc, char** argv) {
     for (int step = 0; step < p; step++) {
         printf("Fox algorithm running on process %d, step %d:\n", rank, step);
 
-        // broadcast the diagonal block of A in each row
-        int root = (rank / p) * p + step;
-        if (rank / p == root / p) {
-            memcpy(local_A, A + (root % p) * TILE_SIZE * TILE_SIZE, TILE_SIZE * TILE_SIZE * sizeof(double));
+        // broadcast the block A in each row
+        if (grid_coords[1] == root) {
+            MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
         }
-
-        MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
 
         // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
