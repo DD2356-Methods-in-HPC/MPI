@@ -323,9 +323,15 @@ int main(int argc, char** argv) {
         printf("Fox algorithm running on process %d, step %d:\n", rank, step);
 
         // calculate root process for this step
+        // alt: (rank % p + step) % p
         int root = (grid_coords[0] + step) % p;
 
         printf("Root: %d, Grid Coordinates: %d, %d", root, grid_coords[0], grid_coords[1]);
+
+        // broadcast the block A in each row
+        if (grid_coords[1] == root) {
+            MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
+        }
 
         // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
