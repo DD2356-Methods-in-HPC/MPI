@@ -68,7 +68,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
             // calculate the displacement for each process
             MPI_Cart_coords(grid_comm, i, 2, coords);
-            displacements[i] = (coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
+            displacements[i] = coords[0] * block_size + coords[1] * block_size; //(coords[0] * block_size * matrix_size) + (coords[1] * block_size * block_size);
         }
 
         // debugging
