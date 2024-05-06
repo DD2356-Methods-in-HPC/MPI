@@ -299,11 +299,13 @@ int main(int argc, char** argv) {
     }
 
     // clean up memory allocations
-    free(A);
-    free(B);
-    free(C);
-    // free upp full matrix if master process
+    free(local_A);
+    free(local_B);
+    free(local_C);
+    // free upp full matrix and input matrix if master process
     if (rank == 0) {
+        free(A);
+        free(B);
         free(C_full);
     }
  
