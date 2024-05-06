@@ -68,6 +68,16 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
         }
     }
 
+    // debugging
+    if (rank == 0) {
+    printf("Displacements array:\n");
+    for (int i = 0; i < processes; i++) {
+            MPI_Cart_coords(grid_comm, i, 2, coords);
+            printf("Process %d - coords (%d, %d), displacement: %d\n",
+                i, coords[0], coords[1], displacements[i]);
+        }
+    }
+
     // scatter blocks of matrix A to all processes
     MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
 
@@ -302,6 +312,7 @@ int main(int argc, char** argv) {
     
     if (rank == 0) {
         // TODO: compare resulting matrix with answer?
+        printf("Final C Matrix:\n");
         print_matrix(C_full, matrix_size);
         // compare
         test_matrix_corectness(C_full, matrix_size, input_file);
