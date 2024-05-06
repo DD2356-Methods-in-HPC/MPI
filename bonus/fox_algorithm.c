@@ -109,20 +109,22 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 }
 
 // function to gather the result matrix from all processes and assemble the full matrix on the master process
-void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm) {
+void gather_results(double *local_C, double *C_full, int tile_size, int matrix_size, int rank, int p, MPI_Comm grid_comm) {
 
     double* temp_C = (double*)malloc(N * N * sizeof(double));
 
     // gather the blocks into temp_C
-    MPI_Gather(C, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, temp_C, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(local_C, tile_size * tile_size, MPI_DOUBLE, temp_C, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
+    // sync processes
+    MPI_Barrier(grid_comm);
 
     if (rank == 0) {
         // copy the blocks from temp_C to C_full in the correct order
         for (int i = 0; i < p; i++) {
             for (int j = 0; j < p; j++) {
-                int block_start = (i * p + j) * TILE_SIZE * TILE_SIZE;
-                for (int k = 0; k < TILE_SIZE; k++) {
-                    memcpy(&C_full[(i * TILE_SIZE + k) * N + j * TILE_SIZE], &temp_C[block_start + k * TILE_SIZE], TILE_SIZE * sizeof(double));
+                int block_start = (i * p + j) * tile_size * tile_size;
+                for (int k = 0; k < tile_size; k++) {
+                    memcpy(&C_full[(i * tile_size + k) * matrix_size + j * tile_size], &temp_C[block_start + k * tile_size], tile_size * sizeof(double));
                 }
             }
         }
@@ -376,8 +378,8 @@ int main(int argc, char** argv) {
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
-    // gather results to form the full matrix C on master process (rank 0)
-    gather_results(local_C, C_full, TILE_SIZE, grid_comm);
+    // gather results to form the full matrix C on master process
+    gather_results(local_C, C_full, TILE_SIZE, matrix_size, rank, processes, grid_comm);
     
     if (rank == 0) {
         // TODO: compare resulting matrix with answer?
