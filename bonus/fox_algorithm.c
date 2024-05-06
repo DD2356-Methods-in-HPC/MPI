@@ -328,7 +328,7 @@ int main(int argc, char** argv) {
 
         // calculate root process for this step
         // alt: (rank % p + step) % p
-        int root = (rank + step) % p;
+        int root = (rank % p + step) % p;
 
         //printf("Root: %d, Grid Coordinates: %d, %d", root, grid_coords[0], grid_coords[1]);
 
