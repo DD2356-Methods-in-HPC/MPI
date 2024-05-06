@@ -267,7 +267,7 @@ int main(int argc, char** argv) {
     }
 
     // distribute the blocks
-    distribute_blocks(&A, &B, matrix_size, processes, rank, processes, TILE_SIZE, grid_comm);
+    distribute_blocks(&A, &B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
