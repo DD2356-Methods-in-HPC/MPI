@@ -219,12 +219,8 @@ int main(int argc, char** argv) {
     // get the number of processes
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
-    MPI_Barrier(grid_comm);
-
     // print the hello message for each MPI process
     printf("Hello from rank %d from %d processes!\n", rank, processes);
-
-    MPI_Barrier(grid_comm);
 
     // check if input file name is provided as an argument
     if (argc > 1) {
@@ -291,6 +287,8 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
+    MPI_Barrier(grid_comm);
+
     // allocate C matrix
     double* local_C = allocate_matrix(TILE_SIZE);
     // allocate full matrices (on rank 0)
@@ -303,11 +301,15 @@ int main(int argc, char** argv) {
     // distribute the blocks
     distribute_blocks(A, B, local_A, local_B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
 
+    MPI_Barrier(grid_comm);
+
     printf("Printing matrix from rank %d:\n", rank);
     printf("Block A:\n");
     print_matrix(local_A, TILE_SIZE);
     printf("Block B:\n");
     print_matrix(local_B, TILE_SIZE);
+
+    MPI_Barrier(grid_comm);
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
