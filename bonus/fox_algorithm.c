@@ -255,6 +255,8 @@ int main(int argc, char** argv) {
         // read input matrices,  pass as reference, only on master process
         read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
 
+        printf("Got matrix size: %d\n", matrix_size);
+
         // check matrix size
         if (matrix_size % p != 0) {
             printf("[ERROR] The matrix size must be divisible by the root of the number of processes.");
