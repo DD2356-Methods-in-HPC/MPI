@@ -111,7 +111,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 // function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *local_C, double *C_full, int tile_size, int matrix_size, int rank, int p, MPI_Comm grid_comm) {
 
-    double* temp_C = (double*)malloc(N * N * sizeof(double));
+    double* temp_C = allocate_matrix(matrix_size); //(double*)malloc(matrix_size * matrix_size * sizeof(double));
 
     // gather the blocks into temp_C
     MPI_Gather(local_C, tile_size * tile_size, MPI_DOUBLE, temp_C, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
