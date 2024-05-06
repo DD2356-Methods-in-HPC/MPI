@@ -39,7 +39,7 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 void distribute_blocks(double* A, double* B, double* local_A, double* local_B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
     
     MPI_Datatype block_type;
-    MPI_Type_vector(block_size, block_size, matrix_size, MPI_DOUBLE, &block_type);
+    MPI_Type_vector(block_size, block_size, 2, MPI_DOUBLE, &block_type);
     MPI_Type_commit(&block_type);
 
     // calculate the number of blocks in each dimension of the grid
@@ -47,14 +47,17 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     MPI_Cartdim_get(grid_comm, grid_dims);
     int blocks_per_row = grid_dims[0];
     int blocks_per_col = grid_dims[1];
+
+    printf("Blocks per row: %d\n blocks per col: %d\n", blocks_per_row, blocks_per_col);
+
     
     // create arrays to hold the counts and displacements for MPI_Scatterv
     int* sendcounts = NULL;
     int* displacements = NULL;
 
     if (rank == 0) {
-        printf("whole matrix size: %d\n", matrix_size);
-        printf("is it evenly divisable with: %d?\n", block_size);
+        //printf("whole matrix size: %d\n", matrix_size);
+        //printf("is it evenly divisable with: %d?\n", block_size);
 
         int coords[2];
         sendcounts = malloc(processes * sizeof(int));
