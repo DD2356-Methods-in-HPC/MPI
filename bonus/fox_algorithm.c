@@ -238,9 +238,9 @@ int main(int argc, char** argv) {
         }
         else {
             printf("Success! Read the two input matrixes as follow:\n");
-            print("Input A:\n");
+            printf("Input A:\n");
             print_matrix(A, TILE_SIZE);
-            print("Input B:\n");
+            printf("Input B:\n");
             print_matrix(B, TILE_SIZE);
         }
     }
@@ -275,9 +275,9 @@ int main(int argc, char** argv) {
     distribute_blocks(A, B, local_A, local_B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
 
     printf("Printing matrix from rank %d:\n", rank);
-    print("Block A:\n");
+    printf("Block A:\n");
     print_matrix(local_A, TILE_SIZE);
-    print("Block B:\n");
+    printf("Block B:\n");
     print_matrix(local_B, TILE_SIZE);
 
     // run fox algorithm
