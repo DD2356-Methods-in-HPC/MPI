@@ -38,24 +38,18 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 // function for distributing blocks of matrices to the different processes
 void distribute_blocks(double* A, double* B, double* local_A, double* local_B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
     
-    MPI_Datatype row_block_type, block_type;
-
-    // create a datatype for a block of elements in one row of the matrix
-    MPI_Type_contiguous(block_size, MPI_DOUBLE, &row_block_type);
-
-    // create a datatype for a block of row blocks in the matrix
-    MPI_Type_vector(block_size, -1, block_size, row_block_type, &block_type);
-
+    MPI_Datatype block_type;
+    MPI_Type_vector(block_size * block_size, 1, block_size, MPI_DOUBLE, &block_type);
+    MPI_Type_create_resized(block_type, 0, sizeof(double), &block_type);
     MPI_Type_commit(&block_type);
-    MPI_Type_free(&row_block_type);  // Don't need this anymore
 
     // calculate the number of blocks in each dimension of the grid
-    int grid_dims[2];
-    MPI_Cartdim_get(grid_comm, grid_dims);
-    int blocks_per_row = grid_dims[0];
-    int blocks_per_col = grid_dims[1];
+    //int grid_dims[2];
+    //MPI_Cartdim_get(grid_comm, grid_dims);
+    //int blocks_per_row = grid_dims[0];
+    //int blocks_per_col = grid_dims[1];
 
-    printf("Blocks per row: %d\n blocks per col: %d\n", blocks_per_row, blocks_per_col);
+    printf("Blocks size: %d\nMatrix size: %d\n", block_size, matrix_size);
 
     
     // create arrays to hold the counts and displacements for MPI_Scatterv
