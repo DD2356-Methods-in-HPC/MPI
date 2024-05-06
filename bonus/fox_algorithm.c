@@ -330,7 +330,7 @@ int main(int argc, char** argv) {
 
         // broadcast the block A in each row
         if (grid_coords[1] == root) {
-            MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
+            MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, grid_comm);
         }
 
         // multiply
