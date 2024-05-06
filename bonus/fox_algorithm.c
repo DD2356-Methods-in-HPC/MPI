@@ -328,7 +328,7 @@ int main(int argc, char** argv) {
         print_matrix(local_B, TILE_SIZE);
 
         // debug
-        printf("Following matrix was produced (local C):\n", rank, step);
+        printf("Following matrix was produced (local C):\n");
         print_matrix(local_C, TILE_SIZE);
         printf("\n");
 
