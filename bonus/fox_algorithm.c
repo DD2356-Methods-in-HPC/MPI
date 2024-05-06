@@ -286,10 +286,15 @@ int main(int argc, char** argv) {
     int dims[2] = {p, p};           // integer array of size ndims, specifying number of processes in each dimension
     int periods[2] = {1, 1};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
     int reorder = 1;                // "boolean", let MPI reorder ranks for more efficient process layout
-    // initilize grid, all processes need the grid to know the coordinates of the blocks
+    // initilize a grid for all processes to be in
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
+
+    // create a sub-grid for all the processes in the same row of the process grid
+    MPI_Comm row_comm;
+    int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
+    MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
 
     MPI_Barrier(grid_comm);
 
@@ -312,16 +317,17 @@ int main(int argc, char** argv) {
     printf("Block B:\n");
     print_matrix(local_B, TILE_SIZE);
     */
-   
+
     // run fox algorithm
     for (int step = 0; step < p; step++) {
         printf("Fox algorithm running on process %d, step %d:\n", rank, step);
 
-        // Broadcast the diagonal block of A in each row
+        // broadcast the diagonal block of A in each row
         int root = (rank / p) * p + step;
         if (rank / p == root / p) {
             memcpy(local_A, A + (root % p) * TILE_SIZE * TILE_SIZE, TILE_SIZE * TILE_SIZE * sizeof(double));
         }
+
         MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
 
         // multiply
@@ -343,7 +349,6 @@ int main(int argc, char** argv) {
         MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
-
 
     // gather results to form the full matrix C on master process (rank 0)
     gather_results(local_C, C_full, TILE_SIZE, grid_comm);
@@ -369,6 +374,7 @@ int main(int argc, char** argv) {
  
     // finalize the MPI environment
     MPI_Comm_free(&grid_comm);
+    MPI_Comm_free(&row_comm);
     MPI_Finalize();
 
     return EXIT_SUCCESS;
