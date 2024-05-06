@@ -39,15 +39,14 @@ void multiply_accumalate(double* A, double* B, double* C, int size) {
 void distribute_blocks(double* A, double* B, double* local_A, double* local_B, int matrix_size, int rank, int processes, int block_size, MPI_Comm grid_comm) {
     MPI_Datatype temp_type, block_type;
 
-    // create a datatype for a block of elements in one row of the matrix
+    // Create a datatype for a block of elements in one row of the matrix
     MPI_Type_contiguous(block_size, MPI_DOUBLE, &temp_type);
 
-    // extend the datatype to represent a block of rows in the matrix
-    MPI_Type_vector(block_size, 1, matrix_size, temp_type, &block_type);
+    // Extend the datatype to represent a block of rows in the matrix
+    MPI_Type_create_resized(temp_type, 0, block_size * sizeof(double), &block_type);
 
     MPI_Type_commit(&block_type);
     MPI_Type_free(&temp_type);  // Don't need this anymore
-
 
     // calculate the number of blocks in each dimension of the grid
     int grid_dims[2];
