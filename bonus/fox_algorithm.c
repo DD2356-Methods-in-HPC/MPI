@@ -69,19 +69,36 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
         }
 
         // debugging
+        /*
         printf("Displacements array:\n");
         for (int i = 0; i < processes; i++) {
                 MPI_Cart_coords(grid_comm, i, 2, coords);
                 printf("Process %d - coords (%d, %d), displacement: %d\n",
                     i, coords[0], coords[1], displacements[i]);
         }
+        */
+
+        printf("Before scattering: A[0]: %.2f, A[1]: %.2f\n", A[0], A[1]);
+        printf("Before scattering: B[0]: %.2f, B[1]: %.2f\n", B[0], B[1]);
     }
 
     // scatter blocks of matrix A to all processes
-    MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+    int error_code = MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+
+    if (error_code != MPI_SUCCESS) {
+        int error_class;
+        char error_string[MPI_MAX_ERROR_STRING];
+        int length_of_error_string;
+
+        MPI_Error_class(error_code, &error_class);
+        MPI_Error_string(error_class, error_string, &length_of_error_string);
+        printf("Rank %d: Error scattering matrix A: %s\n", rank, error_string);
+    }
 
     // scatter blocks of matrix B to all processes
     MPI_Scatterv(B, sendcounts, displacements, block_type, local_B, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+
+    printf("After scattering, rank %d: local_A[0]: %.2f, local_B[0]: %.2f\n", rank, local_A[0], local_B[0]);
 
     // free the arrays and datatype when they are no longer needed
     if (rank == 0) {
