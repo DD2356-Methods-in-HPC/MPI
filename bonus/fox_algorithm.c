@@ -109,34 +109,9 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 }
 
 // function to gather the result matrix from all processes and assemble the full matrix on the master process
-void gather_results(double *local_C, double *C_full, int tile_size, int matrix_size, int rank, int p, MPI_Comm grid_comm) {
-    double* temp_C = NULL;
-
-    if (rank == 0) {
-        double* temp_C = allocate_matrix(matrix_size);
-    }
-
-    // gather the blocks into temp_C
-    MPI_Gather(local_C, tile_size * tile_size, MPI_DOUBLE, temp_C, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
-    // sync processes
-    MPI_Barrier(grid_comm);
-
-    if (rank == 0) {
-        // copy the blocks from temp_C to C_full in the correct order
-        for (int i = 0; i < p; i++) {
-            for (int j = 0; j < p; j++) {
-                int block_start = (i * p + j) * tile_size * tile_size;
-                for (int k = 0; k < tile_size; k++) {
-                    memcpy(&C_full[(i * tile_size + k) * matrix_size + j * tile_size], &temp_C[block_start + k * tile_size], tile_size * sizeof(double));
-                }
-            }
-        }
-
-        free(temp_C);
-    }
-
+void gather_results(double *local_C, double *C_full, int tile_size, MPI_Comm grid_comm) {
     // gather all blocks of C from each process
-    //MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
+    MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
 }
 
 // function for reading matrices A and B from input file
@@ -382,14 +357,30 @@ int main(int argc, char** argv) {
     }
 
     // gather results to form the full matrix C on master process
-    gather_results(local_C, C_full, TILE_SIZE, matrix_size, rank, processes, grid_comm);
+    gather_results(local_C, C_full, TILE_SIZE, grid_comm);
+    MPI_Barrier(grid_comm);
     
     if (rank == 0) {
+        // sort the matrix to be correct
+        double* C_fixed = allocate_matrix(matrix_size);
+
+        // copy the blocks from C_full to C_fixed in the correct order
+        for (int i = 0; i < p; i++) {
+            for (int j = 0; j < p; j++) {
+                int block_start = (i * p + j) * TILE_SIZE * TILE_SIZE;
+                for (int k = 0; k < TILE_SIZE; k++) {
+                    memcpy(&C_fixed[(i * TILE_SIZE + k) * matrix_size + j * TILE_SIZE], &C_full[block_start + k * TILE_SIZE], TILE_SIZE * sizeof(double));
+                }
+            }
+        }
+
         // TODO: compare resulting matrix with answer?
         printf("Final C Matrix:\n");
-        print_matrix(C_full, matrix_size);
+        print_matrix(C_fixed, matrix_size);
         // compare
-        test_matrix_corectness(C_full, matrix_size, input_file);
+        test_matrix_corectness(C_fixed, matrix_size, input_file);
+
+        free(C_fixed);
     }
 
     // clean up memory allocations
