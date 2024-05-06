@@ -353,8 +353,8 @@ int main(int argc, char** argv) {
 
         // shift block B left by one process in its row
         int left, right;
-        MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
-        MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, right, 0, left, 0, grid_comm, MPI_STATUS_IGNORE);
+        MPI_Cart_shift(grid_comm, 1, -1, &right, &left);
+        MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
     // gather results to form the full matrix C on master process
