@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "math.h": "c",
-        "random": "c"
+        "random": "c",
+        "type_traits": "c"
     }
 }

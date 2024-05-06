@@ -197,8 +197,10 @@ void test_matrix_corectness(double* calculated_matrix, int matrix_size, char* fi
     // check if test passes
     if (matrices_match) {
         printf("[TEST PASS] The calculated matrix matches the expected matrix.\n");
+
     } else {
-        printf("[TEST FAIL] The calculated matrix does not match the expected matrix.\n");
+        printf("[TEST FAIL] The calculated matrix does not match the expected matrix.\nExpected matrix:\n");
+        print_matrix(expected_matrix, matrix_size);
     }
 
     // free up memory use
@@ -220,7 +222,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
     // print the hello message for each MPI process
-    printf("Hello from rank %d from %d processes!\n", rank, processes);
+    printf("\nHello from rank %d from %d processes!\n", rank, processes);
 
     // check if input file name is provided as an argument
     if (argc > 1) {
