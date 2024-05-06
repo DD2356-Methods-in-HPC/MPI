@@ -300,8 +300,6 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(row_comm, &row_rank);
     MPI_Comm_size(row_comm, &row_size);
 
-    printf("Process %d out of %d in row_comm\n", row_rank, row_size);
-
     MPI_Barrier(row_comm);
 
     // allocate C matrix
@@ -332,10 +330,11 @@ int main(int argc, char** argv) {
         // alt: (rank % p + step) % p
         int root = (grid_coords[0] + step) % p;
 
-        printf("Root: %d, Grid Coordinates: %d, %d", root, grid_coords[0], grid_coords[1]);
+        //printf("Root: %d, Grid Coordinates: %d, %d", root, grid_coords[0], grid_coords[1]);
 
         // broadcast the block A in each row
         if (grid_coords[1] == root) {
+            printf("Broadcasting local_A because of root %d...", root);
             MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
         }
 
