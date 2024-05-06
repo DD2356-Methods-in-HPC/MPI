@@ -82,21 +82,16 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
         printf("Before scattering: B[0]: %.2f, B[1]: %.2f\n", B[0], B[1]);
     }
 
+    // before scatter, use barrier to synchronize processes
+    MPI_Barrier(grid_comm);
+
     // scatter blocks of matrix A to all processes
-    int error_code = MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
-
-    if (error_code != MPI_SUCCESS) {
-        int error_class;
-        char error_string[MPI_MAX_ERROR_STRING];
-        int length_of_error_string;
-
-        MPI_Error_class(error_code, &error_class);
-        MPI_Error_string(error_class, error_string, &length_of_error_string);
-        printf("Rank %d: Error scattering matrix A: %s\n", rank, error_string);
-    }
-
+    MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
     // scatter blocks of matrix B to all processes
     MPI_Scatterv(B, sendcounts, displacements, block_type, local_B, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
+
+    // after scatter, use barrier to synchronize processes
+    MPI_Barrier(grid_comm);
 
     printf("After scattering, rank %d: local_A[0]: %.2f, local_B[0]: %.2f\n", rank, local_A[0], local_B[0]);
 
@@ -111,8 +106,12 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
 // function to gather the result matrix from all processes and assemble the full matrix on the master process
 void gather_results(double *C, double *C_full, int tile_size, MPI_Comm grid_comm) {
+    // sync before gather
+    MPI_Barrier(grid_comm);
     // gather all blocks of C from each process
     MPI_Gather(C, tile_size * tile_size, MPI_DOUBLE, C_full, tile_size * tile_size, MPI_DOUBLE, 0, grid_comm);
+    // sync after gather
+    MPI_Barrier(grid_comm);
 }
 
 // function for reading matrices A and B from input file
