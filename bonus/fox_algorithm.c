@@ -314,11 +314,13 @@ int main(int argc, char** argv) {
     // distribute the blocks
     distribute_blocks(A, B, local_A, local_B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
 
+    /*
     printf("After scattering, local matrices from rank %d:\n", rank);
     printf("Block A:\n");
     print_matrix(local_A, TILE_SIZE);
     printf("Block B:\n");
     print_matrix(local_B, TILE_SIZE);
+    */
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
@@ -336,7 +338,6 @@ int main(int argc, char** argv) {
         // multiply
         multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
 
-        /*
         printf("Multiplied the following matrices:\n");
         printf("A\n");
         print_matrix(local_A, TILE_SIZE);
@@ -346,7 +347,6 @@ int main(int argc, char** argv) {
         // debug
         printf("Following matrix was produced (local C):\n");
         print_matrix(local_C, TILE_SIZE);
-        */
 
         printf("\n");
 
