@@ -239,9 +239,9 @@ int main(int argc, char** argv) {
         else {
             printf("Success! Read the two input matrixes as follow:\n");
             printf("Input A:\n");
-            print_matrix(A, TILE_SIZE);
+            print_matrix(A, matrix_size);
             printf("Input B:\n");
-            print_matrix(B, TILE_SIZE);
+            print_matrix(B, matrix_size);
         }
     }
 
