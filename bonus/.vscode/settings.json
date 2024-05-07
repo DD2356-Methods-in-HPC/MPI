@@ -6,6 +6,8 @@
         "initializer_list": "c",
         "vector": "c",
         "xstring": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "ios": "c",
+        "xiosbase": "c"
     }
 }
