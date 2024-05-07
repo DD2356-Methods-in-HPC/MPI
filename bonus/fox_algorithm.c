@@ -75,16 +75,6 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
 
             displacements[i] = coords[0] * matrix_size + coords[1]; 
         }
-
-        /*
-        // debugging
-        printf("\nDisplacements array:\n");
-        for (int i = 0; i < processes; i++) {
-                MPI_Cart_coords(grid_comm, i, 2, coords);
-                printf("Process %d - coords (%d, %d), displacement: %d\n",
-                    i, coords[0], coords[1], displacements[i]);
-        }
-        */
     }
 
     // before scatter, use barrier to synchronize processes
@@ -225,7 +215,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
     // print the hello message for each MPI process
-    printf("\nHello from rank %d!\n", rank);
+    // printf("\nHello from rank %d!\n", rank);
 
     // check if input file name is provided as an argument
     if (argc > 1) {
@@ -317,6 +307,7 @@ int main(int argc, char** argv) {
     distribute_blocks(A, B, local_A, local_B, matrix_size, rank, processes, TILE_SIZE, grid_comm);
 
     /*
+    // debugging
     printf("After scattering, local matrices from rank %d:\n", rank);
     printf("Block A:\n");
     print_matrix(local_A, TILE_SIZE);
@@ -333,7 +324,7 @@ int main(int argc, char** argv) {
 
     // run fox algorithm
     for (int step = 0; step < p; step++) {
-        printf("Fox algorithm running on process %d, step %d:\n", rank, step);
+        // printf("Fox algorithm running on process %d, step %d:\n", rank, step);
 
         // calculate root process for this step
         int root = (grid_coords[0] + step) % p;
