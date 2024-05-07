@@ -294,19 +294,13 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
-    // split the grid into rows and columns
-    //MPI_Comm_split(grid_comm, grid_coords[0], grid_coords[1], &row_comm);
-    //MPI_Comm_split(grid_comm, grid_coords[1], grid_coords[0], &col_comm);
-
     // create a sub-grid for all the processes in the same row and columns of the process grid
-    int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
-    MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
+    int remain_dims_row[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
+    MPI_Cart_sub(grid_comm, remain_dims_row, &row_comm);
 
-    remain_dims[0] = 1;
-    remain_dims[1] = 0;
-    MPI_Cart_sub(grid_comm, remain_dims, &col_comm);
+    int remain_dims_col[2] = {1, 0};
+    MPI_Cart_sub(grid_comm, remain_dims_col, &col_comm);
 
-    //MPI_Barrier(row_comm);
     MPI_Barrier(row_comm);
     MPI_Barrier(col_comm);
 
@@ -334,6 +328,7 @@ int main(int argc, char** argv) {
     source = (grid_coords[0] + 1) % p;
     dest = (grid_coords[0] + p - 1) % p;
 
+    // set aside storage for boradcast of block A
     double* temp_A = allocate_matrix(TILE_SIZE);
 
     // run fox algorithm
@@ -344,7 +339,6 @@ int main(int argc, char** argv) {
         int root = (grid_coords[0] + step) % p;
 
         // broadcast the block A in each row
-        //printf("Root: %d, Grid Coordinates: %d, %d\n", root, grid_coords[0], grid_coords[1]);
         if (root == grid_coords[1]) {
             MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
             // multiply
@@ -356,6 +350,7 @@ int main(int argc, char** argv) {
             multiply_accumalate(temp_A, local_B, local_C, TILE_SIZE);
         }
 
+        /*
         printf("Multiplied the following matrices:\n");
         printf("A\n");
         print_matrix(local_A, TILE_SIZE);
@@ -366,10 +361,9 @@ int main(int argc, char** argv) {
         printf("Following matrix was produced (local C):\n");
         print_matrix(local_C, TILE_SIZE);
         printf("\n");
+        */
 
-        // shift block B left by one process in its row
-        //int left, right;
-        //MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
+        // shift block B 
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, dest, 0, source, 0, col_comm, MPI_STATUS_IGNORE);
     }
 
@@ -393,7 +387,6 @@ int main(int argc, char** argv) {
             }
         }
 
-        // TODO: compare resulting matrix with answer?
         printf("Final C Matrix:\n");
         print_matrix(C_fixed, matrix_size);
         // compare
