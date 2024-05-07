@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
     int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
     MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
 
-    remain_dims[1] = 1;
+    remain_dims[0] = 1;
     remain_dims[1] = 0;
     MPI_Cart_sub(grid_comm, remain_dims, &col_comm);
 
