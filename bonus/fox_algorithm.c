@@ -286,7 +286,7 @@ int main(int argc, char** argv) {
     // create cartesian grid, set variables
     int ndims = 2;                  // number of dimensions in grid, always 2D
     int dims[2] = {p, p};           // integer array of size ndims, specifying number of processes in each dimension
-    int periods[2] = {1, 0};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
+    int periods[2] = {1, 1};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
     int reorder = 1;                // "boolean", let MPI reorder ranks for more efficient process layout
     // initilize a grid for all processes to be in
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
@@ -360,7 +360,7 @@ int main(int argc, char** argv) {
 
         // shift block B left by one process in its row
         int left, right;
-        MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
+        MPI_Cart_shift(grid_comm, 1, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
