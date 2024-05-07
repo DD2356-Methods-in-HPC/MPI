@@ -286,7 +286,7 @@ int main(int argc, char** argv) {
     // create cartesian grid, set variables
     int ndims = 2;                  // number of dimensions in grid, always 2D
     int dims[2] = {p, p};           // integer array of size ndims, specifying number of processes in each dimension
-    int periods[2] = {0, 0};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
+    int periods[2] = {0, 1};        // "boolean" array, use periodic boundaries (wrap around) for both dimensions
     int reorder = 1;                // "boolean", let MPI reorder ranks for more efficient process layout
     // initilize a grid for all processes to be in
     MPI_Cart_create(MPI_COMM_WORLD, ndims, dims, periods, reorder, &grid_comm);
