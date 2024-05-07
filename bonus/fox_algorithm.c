@@ -340,10 +340,6 @@ int main(int argc, char** argv) {
         // calculate root process for this step
         int root = (rank + step) % p;
 
-        if (rank >= rank/2) {
-            int root = (root + 1) % p;
-        }
-
         // broadcast the block A in each row
         printf("Root: %d, Grid Coordinates: %d, %d\n", root, grid_coords[0], grid_coords[1]);
         MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
@@ -363,9 +359,9 @@ int main(int argc, char** argv) {
         printf("\n");
 
         // shift block B left by one process in its row
-        int left, right;
-        MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
-        MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
+        //int left, right;
+        //MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
+        //MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
     // gather results to form the full matrix C on master process
