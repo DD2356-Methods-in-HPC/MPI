@@ -210,7 +210,8 @@ void test_matrix_corectness(double* calculated_matrix, int matrix_size, char* fi
 int main(int argc, char** argv) {
     int processes, rank;
     int p;                         // grid size (square root of num of processes)
-    int grid_rank, grid_coords[2]; // cartesian grid
+    int grid_rank;                 // cartesian grid
+    int grid_coords[2];
     MPI_Comm grid_comm;            // communicator with cartesian topology
     MPI_Comm row_comm;
     MPI_Comm col_comm;
@@ -293,19 +294,21 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
+    // split the grid into rows and columns
+    //MPI_Comm_split(grid_comm, grid_coords[0], grid_coords[1], &row_comm);
+    //MPI_Comm_split(grid_comm, grid_coords[1], grid_coords[0], &col_comm);
+
+    // create a sub-grid for all the processes in the same row and columns of the process grid
     int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
     MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
 
-    // create a sub-grid for all the processes in the same row of the process grid
-    /*
+    remain_dims[1] = 1;
+    remain_dims[1] = 0;
+    MPI_Cart_sub(grid_comm, remain_dims, &col_comm);
 
-
-    int row_rank, row_size;
-    MPI_Comm_rank(row_comm, &row_rank);
-    MPI_Comm_size(row_comm, &row_size);
-    */
-
+    //MPI_Barrier(row_comm);
     MPI_Barrier(row_comm);
+    MPI_Barrier(col_comm);
 
     // allocate C matrix
     double* local_C = allocate_matrix(TILE_SIZE);
@@ -327,6 +330,9 @@ int main(int argc, char** argv) {
     print_matrix(local_B, TILE_SIZE);
     */
 
+    int source, dest;
+    source = (grid_coords[0] + 1) % p;
+    dest = (grid_coords[0] + p - 1) % p;
     // run fox algorithm
     for (int step = 0; step < p; step++) {
         printf("Fox algorithm running on process %d, step %d:\n", rank, step);
