@@ -293,15 +293,12 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
-    int row = rank / p;
-
-    // split the grid into rows
-    MPI_Comm_split(grid_comm, row, rank, &row_comm);
+    int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
+    MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
 
     // create a sub-grid for all the processes in the same row of the process grid
     /*
-    int remain_dims[2] = {0, 1};    // which dimensions to keep, we keep the second dimension or rows
-    MPI_Cart_sub(grid_comm, remain_dims, &row_comm);
+
 
     int row_rank, row_size;
     MPI_Comm_rank(row_comm, &row_rank);
