@@ -345,7 +345,7 @@ int main(int argc, char** argv) {
         //printf("Root: %d, Grid Coordinates: %d, %d", root, grid_coords[0], grid_coords[1]);
 
         // broadcast the block A in each row
-        if (root = grid_coords[1]) {
+        if (root == grid_coords[1]) {
             MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
         }
 
