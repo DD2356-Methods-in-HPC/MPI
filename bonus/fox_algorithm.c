@@ -293,11 +293,10 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(grid_comm, &grid_rank);
     MPI_Cart_coords(grid_comm, grid_rank, ndims, grid_coords);
 
-    // split the grid into rows and columns
-    MPI_Comm_split(grid_comm, grid_coords[0], grid_coords[1], &row_comm);
+    int row = rank / p;
 
-    // Split the grid into columns
-    MPI_Comm_split(grid_comm, grid_coords[1], grid_coords[0], &col_comm);
+    // split the grid into rows
+    MPI_Comm_split(grid_comm, row, rank, &row_comm);
 
     // create a sub-grid for all the processes in the same row of the process grid
     /*
@@ -309,9 +308,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(row_comm, &row_size);
     */
 
-    //MPI_Barrier(row_comm);
     MPI_Barrier(row_comm);
-    MPI_Barrier(col_comm);
 
     // allocate C matrix
     double* local_C = allocate_matrix(TILE_SIZE);
@@ -359,9 +356,9 @@ int main(int argc, char** argv) {
         printf("\n");
 
         // shift block B left by one process in its row
-        //int left, right;
-        //MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
-        //MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
+        int left, right;
+        MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
+        MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
 
     // gather results to form the full matrix C on master process
