@@ -333,19 +333,28 @@ int main(int argc, char** argv) {
     int source, dest;
     source = (grid_coords[0] + 1) % p;
     dest = (grid_coords[0] + p - 1) % p;
+
+    double* temp_A = allocate_matrix(TILE_SIZE);
+
     // run fox algorithm
     for (int step = 0; step < p; step++) {
         printf("Fox algorithm running on process %d, step %d:\n", rank, step);
 
         // calculate root process for this step
-        int root = (dest + step) % p;
+        int root = (grid_coords[0] + step) % p;
 
         // broadcast the block A in each row
-        printf("Root: %d, Grid Coordinates: %d, %d\n", root, grid_coords[0], grid_coords[1]);
-        MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
-
-        // multiply
-        multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
+        //printf("Root: %d, Grid Coordinates: %d, %d\n", root, grid_coords[0], grid_coords[1]);
+        if (root == grid_coords[1]) {
+            MPI_Bcast(local_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
+            // multiply
+            multiply_accumalate(local_A, local_B, local_C, TILE_SIZE);
+        }
+        else {
+            MPI_Bcast(temp_A, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, root, row_comm);
+            // multiply
+            multiply_accumalate(temp_A, local_B, local_C, TILE_SIZE);
+        }
 
         printf("Multiplied the following matrices:\n");
         printf("A\n");
@@ -363,6 +372,8 @@ int main(int argc, char** argv) {
         //MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, dest, 0, source, 0, col_comm, MPI_STATUS_IGNORE);
     }
+
+    free(temp_A);
 
     // gather results to form the full matrix C on master process
     gather_results(local_C, C_full, TILE_SIZE, grid_comm);
