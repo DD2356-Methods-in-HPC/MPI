@@ -341,7 +341,7 @@ int main(int argc, char** argv) {
         int root = (rank + step) % p;
 
         if (rank >= rank/2) {
-            int root = (root - 1) % p;
+            int root = (root + 1) % p;
         }
 
         // broadcast the block A in each row
