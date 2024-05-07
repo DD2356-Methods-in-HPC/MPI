@@ -365,8 +365,8 @@ int main(int argc, char** argv) {
 
         // shift block B left by one process in its row
         int left, right;
-        left = (grid_coords[1] + 1) % p;
-        right = (grid_coords[1] - 1 + p) % p;
+        left = (grid_coords[1] + p) % processes;
+        right = (grid_coords[1] - p + processes) % processes;
         //MPI_Cart_shift(grid_comm, 0, -1, &right, &left);
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, left, 0, right, 0, grid_comm, MPI_STATUS_IGNORE);
     }
