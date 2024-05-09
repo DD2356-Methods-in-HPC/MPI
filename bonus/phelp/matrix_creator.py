@@ -1,6 +1,6 @@
 import numpy as np
 
-size = 144
+size = 36
 
 # create two matrices of size
 matrix_1 = np.random.randint(0, 100, (size, size))

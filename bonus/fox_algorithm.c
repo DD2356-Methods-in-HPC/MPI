@@ -206,6 +206,7 @@ int main(int argc, char** argv) {
     MPI_Comm row_comm;
     MPI_Comm col_comm;
     char* input_file = NULL;       // path to file
+    double start_time, end_time;   // variables to benchmark time
 
     // initialize MPI environment
     MPI_Init(&argc, &argv);
@@ -239,8 +240,8 @@ int main(int argc, char** argv) {
     }
 
     // initilize the blocks
-    double *A, *B;
-    double *local_A, *local_B;
+    double *A, *B;              // the input matrices
+    double *local_A, *local_B;  // local block matrices
     int matrix_size = 0;        // initilize to value beacuse otherwise segmentation fault is triggered
 
     if (rank == 0) {
@@ -265,6 +266,11 @@ int main(int argc, char** argv) {
             print_matrix(B, matrix_size);
             printf("\n");
         }
+    }
+
+    // after reading input matrix start time on the master process
+    if (rank == 0) {
+        start_time = MPI_Wtime();
     }
 
     // broadcast matrix_size to all processes, it is needed in fox algorithm
@@ -341,19 +347,6 @@ int main(int argc, char** argv) {
             multiply_accumalate(temp_A, local_B, local_C, TILE_SIZE);
         }
 
-        /*
-        printf("Multiplied the following matrices:\n");
-        printf("A\n");
-        print_matrix(local_A, TILE_SIZE);
-        printf("B\n");
-        print_matrix(local_B, TILE_SIZE);
-
-        // debug
-        printf("Following matrix was produced (local C):\n");
-        print_matrix(local_C, TILE_SIZE);
-        printf("\n");
-        */
-
         // shift block B 
         MPI_Sendrecv_replace(local_B, TILE_SIZE * TILE_SIZE, MPI_DOUBLE, dest, 0, source, 0, col_comm, MPI_STATUS_IGNORE);
     }
@@ -363,8 +356,11 @@ int main(int argc, char** argv) {
     // gather results to form the full matrix C on master process
     gather_results(local_C, C_full, TILE_SIZE, grid_comm);
     MPI_Barrier(grid_comm);
-    
+
     if (rank == 0) {
+        // after algorithms have finished, and results are gathered, record end of time
+        end_time = MPI_Wtime();
+
         // sort the matrix to be correct
         double* C_fixed = allocate_matrix(matrix_size);
 
@@ -378,12 +374,18 @@ int main(int argc, char** argv) {
             }
         }
 
-        printf("Final C Matrix:\n");
-        print_matrix(C_fixed, matrix_size);
+        //printf("Final C Matrix:\n");
+        //print_matrix(C_fixed, matrix_size);
+        
         // compare
         test_matrix_corectness(C_fixed, matrix_size, input_file);
-
         free(C_fixed);
+
+        // calculate and print runtime on the master process
+        if (rank == 0) {
+            double runtime = end_time - start_time;
+            printf("Number of processes: %d, Runtime: %f seconds\n", processes, runtime);
+        }
     }
 
     // clean up memory allocations
