@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &processes);
 
     // print the hello message for each MPI process
-    // printf("\nHello from rank %d!\n", rank);
+    printf("\nHello from rank %d!\n", rank);
 
     // check if input file name is provided as an argument
     if (argc > 1) {
