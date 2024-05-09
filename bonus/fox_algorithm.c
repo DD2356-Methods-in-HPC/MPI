@@ -259,11 +259,11 @@ int main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         else {
-            printf("Read the two input matrixes as follow:\n");
-            printf("Input A:\n");
-            print_matrix(A, matrix_size);
-            printf("Input B:\n");
-            print_matrix(B, matrix_size);
+            printf("Read the two input matrixes!\n");
+            //printf("Input A:\n");
+            //print_matrix(A, matrix_size);
+            //printf("Input B:\n");
+            //print_matrix(B, matrix_size);
             printf("\n");
         }
     }
