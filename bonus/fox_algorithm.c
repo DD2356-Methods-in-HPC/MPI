@@ -249,6 +249,8 @@ int main(int argc, char** argv) {
         read_input_matrices_from_file(input_file, &A, &B, &matrix_size);
 
         printf("Got matrix size: %d\n", matrix_size);
+        printf("Number of processes: %d\n", processes);
+        printf("Time will start now...");
 
         // check matrix size
         if (matrix_size % p != 0) {
@@ -259,12 +261,12 @@ int main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         else {
-            printf("Read the two input matrixes!\n");
+            //printf("Read the two input matrixes!\n");
             //printf("Input A:\n");
             //print_matrix(A, matrix_size);
             //printf("Input B:\n");
             //print_matrix(B, matrix_size);
-            printf("\n");
+            //printf("\n");
         }
     }
 
