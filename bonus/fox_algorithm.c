@@ -78,7 +78,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     }
 
     // before scatter, use barrier to synchronize processes
-    MPI_Barrier(grid_comm);
+    //MPI_Barrier(grid_comm);
 
     // scatter blocks of matrix A to all processes
     MPI_Scatterv(A, sendcounts, displacements, block_type, local_A, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
@@ -86,7 +86,7 @@ void distribute_blocks(double* A, double* B, double* local_A, double* local_B, i
     MPI_Scatterv(B, sendcounts, displacements, block_type, local_B, block_size * block_size, MPI_DOUBLE, 0, grid_comm);
 
     // after scatter, use barrier to synchronize processes
-    MPI_Barrier(grid_comm);
+    //MPI_Barrier(grid_comm);
 
     // free the arrays and datatype when they are no longer needed
     if (rank == 0) {
@@ -357,7 +357,6 @@ int main(int argc, char** argv) {
 
     // gather results to form the full matrix C on master process
     gather_results(local_C, C_full, TILE_SIZE, grid_comm);
-    MPI_Barrier(grid_comm);
 
     if (rank == 0) {
         // after algorithms have finished, and results are gathered, record end of time
