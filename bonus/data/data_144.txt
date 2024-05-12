@@ -1,0 +1,84 @@
+matrix size: 144
+n-tasks = 16
+Run 1:
+Number of processes: 16, Runtime: 0.004825 seconds
+Run 2:
+Number of processes: 16, Runtime: 0.005084 seconds
+Run 3:
+Number of processes: 16, Runtime: 0.005371 seconds
+Run 4:
+Number of processes: 16, Runtime: 0.004830 seconds
+Run 5:
+Number of processes: 16, Runtime: 0.005393 seconds
+Run 6:
+Number of processes: 16, Runtime: 0.004388 seconds
+
+n-tasks = 36
+Run 1:
+Number of processes: 36, Runtime: 0.046033 seconds
+Run 2:
+Number of processes: 36, Runtime: 0.005801 seconds
+Run 3:
+Number of processes: 36, Runtime: 0.006175 seconds
+Run 4:
+Number of processes: 36, Runtime: 0.006290 seconds
+Run 5:
+Number of processes: 36, Runtime: 0.005764 seconds
+Run 6:
+Number of processes: 36, Runtime: 0.006133 seconds
+
+n-tasks = 64
+Run 1:
+Number of processes: 64, Runtime: 0.063368 seconds
+Run 2:
+Number of processes: 64, Runtime: 0.007090 seconds
+Run 3:
+Number of processes: 64, Runtime: 0.007581 seconds
+Run 4:
+Number of processes: 64, Runtime: 0.053726 seconds
+Run 5:
+Number of processes: 64, Runtime: 0.008647 seconds
+Run 6:
+Number of processes: 64, Runtime: 0.008309 seconds
+
+t-tasks = 81
+Run 1:
+Number of processes: 81, Runtime: 0.061050 seconds
+Run 2:
+Number of processes: 81, Runtime: 0.008764 seconds
+Run 3:
+Number of processes: 81, Runtime: 0.009341 seconds
+Run 4:
+Number of processes: 81, Runtime: 0.009715 seconds
+Run 5:
+Number of processes: 81, Runtime: 0.008660 seconds
+Run 6:
+Number of processes: 81, Runtime: 0.009068 seconds
+
+t-tasks = 144
+Run 1:
+Number of processes: 144, Runtime: 0.061565 seconds
+Run 2:
+Number of processes: 144, Runtime: 0.007029 seconds
+Run 3:
+Number of processes: 144, Runtime: 0.007391 seconds
+Run 4:
+Number of processes: 144, Runtime: 0.006716 seconds
+Run 5:
+Number of processes: 144, Runtime: 0.006774 seconds
+Run 6:
+Number of processes: 144, Runtime: 0.006945 seconds
+
+t-tasks = 256
+Run 1:
+Number of processes: 256, Runtime: 0.007205 seconds
+Run 2:
+Number of processes: 256, Runtime: 0.007336 seconds
+Run 3:
+Number of processes: 256, Runtime: 0.006895 seconds
+Run 4:
+Number of processes: 256, Runtime: 0.006797 seconds
+Run 5:
+Number of processes: 256, Runtime: 0.006974 seconds
+Run 6:
+Number of processes: 256, Runtime: 0.007030 seconds

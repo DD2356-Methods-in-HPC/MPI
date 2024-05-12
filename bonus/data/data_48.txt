@@ -1,0 +1,70 @@
+matrix size 48:
+n-tasks = 16
+Run 1:
+Number of processes: 16, Runtime: 0.035514 seconds
+Run 2:
+Number of processes: 16, Runtime: 0.003149 seconds
+Run 3:
+Number of processes: 16, Runtime: 0.003192 seconds
+Run 4:
+Number of processes: 16, Runtime: 0.003271 seconds
+Run 5:
+Number of processes: 16, Runtime: 0.003324 seconds
+Run 6:
+Number of processes: 16, Runtime: 0.003464 seconds
+
+n-tasks = 36
+Run 1:
+Number of processes: 36, Runtime: 0.004542 seconds
+Run 2:
+Number of processes: 36, Runtime: 0.004327 seconds
+Run 3:
+Number of processes: 36, Runtime: 0.005562 seconds
+Run 4:
+Number of processes: 36, Runtime: 0.005209 seconds
+Run 5:
+Number of processes: 36, Runtime: 0.004617 seconds
+Run 6:
+Number of processes: 36, Runtime: 0.005720 seconds
+
+n-tasks = 64
+Run 1:
+Number of processes: 64, Runtime: 0.067745 seconds
+Run 2:
+Number of processes: 64, Runtime: 0.007538 seconds
+Run 3:
+Number of processes: 64, Runtime: 0.006710 seconds
+Run 4:
+Number of processes: 64, Runtime: 0.006927 seconds
+Run 5:
+Number of processes: 64, Runtime: 0.006295 seconds
+Run 6:
+Number of processes: 64, Runtime: 0.006657 seconds
+
+n-tasks = 144
+Run 1:
+Number of processes: 144, Runtime: 0.062720 seconds
+Run 2:
+Number of processes: 144, Runtime: 0.006045 seconds
+Run 3:
+Number of processes: 144, Runtime: 0.006444 seconds
+Run 4:
+Number of processes: 144, Runtime: 0.005870 seconds
+Run 5:
+Number of processes: 144, Runtime: 0.005920 seconds
+Run 6:
+Number of processes: 144, Runtime: 0.005624 seconds
+
+n-tasks = 256
+Run 1:
+Number of processes: 256, Runtime: 0.007577 seconds
+Run 2:
+Number of processes: 256, Runtime: 0.006703 seconds
+Run 3:
+Number of processes: 256, Runtime: 0.007416 seconds
+Run 4:
+Number of processes: 256, Runtime: 0.006847 seconds
+Run 5:
+Number of processes: 256, Runtime: 0.007771 seconds
+Run 6:
+Number of processes: 256, Runtime: 0.006489 seconds

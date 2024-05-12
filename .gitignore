@@ -1,0 +1,8 @@
+# python virtual environment ignore
+venv/
+
+# ignore log file
+log1.txt
+
+# vs code ignore
+.vscode/
